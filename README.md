@@ -174,7 +174,7 @@ Customer returns item → Credit check → Penalty calculated → AI grades prod
 
 ## 🤝 Team
 
-Built for Amazon HAckon 2026
+Built for Amazon Hackon 2026
 
 ---
 
