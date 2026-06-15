@@ -72,7 +72,7 @@ ReturnLess attacks the return problem from both ends:
 
 ```bash
 # Clone
-git clone https://github.com/YOUR_USERNAME/returnless.git
+git clone https://github.com/Raj-UtsaV/ReturnLess.git
 cd returnless
 
 # Setup
@@ -174,7 +174,7 @@ Customer returns item → Credit check → Penalty calculated → AI grades prod
 
 ## 🤝 Team
 
-Built for Amazon Smbhav Hackathon 2025
+Built for Amazon HAckon 2026
 
 ---
 
