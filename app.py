@@ -116,3 +116,7 @@ def _import_models():
     import grading.models  # noqa: F401
     import routing.models  # noqa: F401
     import credits.models  # noqa: F401
+
+
+# Module-level app instance for gunicorn (gunicorn app:app)
+app = create_app()
