@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Return Item{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{{ url_for('checkout.order_history') }}">Orders</a></li>
+            <li><a href="{{ url_for('checkout.order_confirmation', order_number=order.order_number) }}">{{ order.order_number }}</a></li>
+            <li class="font-medium">Return</li>
+        </ul>
+    </div>
+
+    <h1 class="text-2xl font-bold mb-6">↩️ Return Item</h1>
+
+    <!-- Item being returned -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+        <div class="card-body p-4">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-lg bg-base-200 overflow-hidden flex-shrink-0">
+                    {% if order_item.product_thumbnail %}
+                        <img src="{{ order_item.product_thumbnail }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <p class="font-medium">{{ order_item.product_name }}</p>
+                    <p class="text-sm text-base-content/60">
+                        Qty: {{ order_item.quantity }}
+                        {% if order_item.size %} • Size: {{ order_item.size }}{% endif %}
+                    </p>
+                    <p class="text-sm font-medium mt-1">₹{{ "{:,.0f}".format(order_item.subtotal) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return Form -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm">
+        <div class="card-body">
+            <h2 class="font-bold text-lg mb-4">Why are you returning this item?</h2>
+
+            <form method="POST" action="{{ url_for('returns.return_item', order_id=order.id, item_id=order_item.id) }}">
+                <div class="space-y-3">
+                    {% for key, label in reasons.items() %}
+                        <label class="flex items-center gap-3 p-3 border border-base-200 rounded-lg cursor-pointer hover:border-primary transition">
+                            <input type="radio" name="reason" value="{{ key }}" class="radio radio-primary radio-sm"
+                                   {% if key == 'changed_mind' %}checked{% endif %}>
+                            <div>
+                                <span class="text-sm">{{ label }}</span>
+                                {% if key in ('defective', 'wrong_item', 'not_as_described') %}
+                                    <span class="badge badge-success badge-xs ml-2">No penalty</span>
+                                {% endif %}
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <div class="form-control mt-4">
+                    <label class="label"><span class="label-text">Details (optional)</span></label>
+                    <textarea name="reason_detail" class="textarea textarea-bordered" rows="3"
+                              placeholder="Describe the issue in detail..."></textarea>
+                </div>
+
+                <!-- Penalty Preview -->
+                <div class="mt-6 bg-base-200/50 rounded-lg p-4">
+                    <h3 class="font-medium text-sm mb-2">💰 Credit Impact</h3>
+                    <p class="text-xs text-base-content/60">
+                        • <span class="font-medium">Defective/Wrong item/Not as described</span> → Earned credits reversed. If verified as genuine defect, <span class="text-success font-medium">penalty will be refunded</span>.<br>
+                        • <span class="font-medium">Other reasons (size, changed mind)</span> → Earned credits reversed + <span class="text-error font-medium">{{ penalty.penalty }} extra penalty</span> (product was fine).
+                    </p>
+                    {% if penalty.is_serial %}
+                        <p class="text-xs text-error mt-1 font-medium">⚠️ Frequent returner detected — extra penalty of 30 credits applies.</p>
+                    {% endif %}
+                </div>
+
+                <!-- What happens next -->
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg" data-theme="light">
+                    <p class="text-sm font-medium text-blue-800 mb-2">📋 What happens after you submit:</p>
+                    <ul class="steps steps-vertical text-xs text-blue-700">
+                        <li class="step step-primary">Return Accepted</li>
+                        <li class="step">Item Verified at Warehouse</li>
+                        <li class="step">Quality Inspection</li>
+                        <li class="step">Refund + Credit Adjustment Processed</li>
+                    </ul>
+                    <p class="text-xs text-blue-600 mt-2">Expected refund: 3-5 business days</p>
+                </div>
+
+                <!-- Info Box -->
+                <div class="alert bg-base-200/50 border border-base-200 mt-4">
+                    <div>
+                        <span>💡</span>
+                        <div class="text-xs">
+                            <p class="font-medium">Return Policy</p>
+                            <p>• Defective items: Full refund, no credit penalty</p>
+                            <p>• Other reasons: Full ₹ refund + credit adjustment</p>
+                            <p>• Frequent returns (3+/month): Higher credit penalty (-30)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <input type="submit" value="Submit Return Request" class="btn btn-warning flex-1 cursor-pointer">
+                    <a href="{{ url_for('checkout.order_confirmation', order_number=order.order_number) }}" class="btn btn-ghost">
+                        Keep Item
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

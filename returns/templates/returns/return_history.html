@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Returns & Cancellations{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">🔄 Returns & Cancellations</h1>
+
+    {% if return_list %}
+        <div class="space-y-4">
+            {% for ret in return_list %}
+                <div class="card bg-base-100 border border-base-200 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-lg bg-base-200 overflow-hidden flex-shrink-0">
+                                    {% if ret.order_item and ret.order_item.product_thumbnail %}
+                                        <img src="{{ ret.order_item.product_thumbnail }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center text-lg">📦</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-medium text-sm">{{ ret.order_item.product_name if ret.order_item else 'Unknown Item' }}</p>
+                                    <p class="text-xs text-base-content/60">
+                                        Order: {{ ret.order.order_number if ret.order else 'N/A' }}
+                                        • {{ ret.created_at.strftime('%b %d, %Y') if ret.created_at else '' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <span class="badge badge-sm
+                                    {% if ret.request_type == 'cancel' %}badge-warning
+                                    {% else %}badge-info{% endif %}">
+                                    {{ ret.request_type | title }}
+                                </span>
+                                <span class="badge badge-sm
+                                    {% if ret.status == 'completed' %}badge-success
+                                    {% elif ret.status == 'approved' %}badge-primary
+                                    {% elif ret.status == 'rejected' %}badge-error
+                                    {% else %}badge-ghost{% endif %}">
+                                    {{ ret.status | title }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Details -->
+                        <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div>
+                                <p class="text-xs text-base-content/50">Reason</p>
+                                <p class="font-medium">{{ ret.reason | replace('_', ' ') | title }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50">Refund</p>
+                                <p class="font-medium text-success">₹{{ "{:,.0f}".format(ret.refund_amount) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50">Credits Impact</p>
+                                {% if ret.is_defective %}
+                                    <p class="font-medium text-info">-{{ ret.credits_deducted }} 🌱 (reversed, penalty refunded after verification)</p>
+                                {% elif ret.credits_deducted > 0 %}
+                                    <p class="font-medium text-error">-{{ ret.credits_deducted }} 🌱</p>
+                                {% else %}
+                                    <p class="font-medium text-success">No penalty</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-xs text-base-content/50">Refund Status</p>
+                                <p class="font-medium">{{ ret.refund_status | title }}</p>
+                            </div>
+                        </div>
+
+                        {% if ret.credit_explanation %}
+                            <div class="mt-2 p-2 bg-base-200/50 rounded-lg">
+                                <p class="text-xs text-base-content/60 italic">💡 {{ ret.credit_explanation }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4">📦</div>
+            <h2 class="text-2xl font-bold">No returns or cancellations</h2>
+            <p class="text-base-content/60 mt-2">All your orders are going strong!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

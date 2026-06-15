@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Reviews - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('products.catalog') }}">Products</a></li>
+            <li><a href="{{ url_for('products.product_detail', slug=product.slug) }}">{{ product.name[:40] }}...</a></li>
+            <li class="font-medium">Reviews</li>
+        </ul>
+    </div>
+
+    <!-- Product Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center gap-4 mb-8">
+        <div class="flex items-center gap-4">
+            {% if product.thumbnail %}
+                <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-16 h-16 rounded-lg object-cover">
+            {% endif %}
+            <div>
+                <h1 class="text-2xl font-bold">Customer Reviews</h1>
+                <p class="text-base-content/60 text-sm">{{ product.name }}</p>
+            </div>
+        </div>
+        {% if can_review %}
+            <a href="{{ url_for('reviews.write_review', product_id=product.id) }}"
+               class="btn btn-primary btn-sm md:ml-auto">
+                ✍️ Write a Review
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Left Sidebar: Stats & AI Summary -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Rating Overview -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <p class="text-4xl font-bold">{{ stats.average }}</p>
+                        <div class="rating rating-sm mt-1">
+                            {% for i in range(5) %}
+                                <span class="{% if i < stats.average|int %}text-warning{% else %}text-base-300{% endif %} text-lg">★</span>
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm text-base-content/60 mt-1">{{ stats.total }} reviews</p>
+                    </div>
+
+                    <!-- Rating Distribution -->
+                    <div class="space-y-2">
+                        {% for i in range(5, 0, -1) %}
+                            {% set count = stats.distribution.get(i|string, 0) %}
+                            {% set pct = (count / stats.total * 100) if stats.total > 0 else 0 %}
+                            <a href="?rating={{ i }}" class="flex items-center gap-2 group hover:bg-base-200 rounded px-1 py-0.5 transition {% if current_rating_filter == i %}bg-base-200{% endif %}">
+                                <span class="text-xs w-6 text-right">{{ i }}★</span>
+                                <progress class="progress progress-warning w-full h-2" value="{{ pct }}" max="100"></progress>
+                                <span class="text-xs text-base-content/50 w-8">{{ count }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+
+                    {% if current_rating_filter %}
+                        <a href="{{ url_for('reviews.product_reviews', product_id=product.id) }}" class="btn btn-ghost btn-xs mt-3 w-full">Clear Filter</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI Summary Card -->
+            {% if summary %}
+                <div class="card bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-sm"
+                     data-theme="light">
+                    <div class="card-body p-4">
+                        <h3 class="font-bold text-sm flex items-center gap-2 text-blue-800">
+                            🤖 AI Review Analysis
+                        </h3>
+                        <p class="text-xs text-blue-700 mt-2 leading-relaxed">
+                            {{ summary.summary_text }}
+                        </p>
+
+                        <!-- Sentiment Bars -->
+                        <div class="mt-4 space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs w-16">Positive</span>
+                                <progress class="progress progress-success h-2 flex-1" value="{{ summary.positive_pct }}" max="100"></progress>
+                                <span class="text-xs w-10 text-right">{{ summary.positive_pct }}%</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs w-16">Neutral</span>
+                                <progress class="progress progress-warning h-2 flex-1" value="{{ summary.neutral_pct }}" max="100"></progress>
+                                <span class="text-xs w-10 text-right">{{ summary.neutral_pct }}%</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs w-16">Negative</span>
+                                <progress class="progress progress-error h-2 flex-1" value="{{ summary.negative_pct }}" max="100"></progress>
+                                <span class="text-xs w-10 text-right">{{ summary.negative_pct }}%</span>
+                            </div>
+                        </div>
+
+                        <!-- Pros & Cons -->
+                        {% if summary.pros %}
+                            <div class="mt-3">
+                                <p class="text-xs font-medium text-green-700">✅ Pros</p>
+                                <ul class="text-xs space-y-0.5 mt-1">
+                                    {% for pro in summary.pros %}
+                                        <li class="text-green-600">• {{ pro }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if summary.cons %}
+                            <div class="mt-2">
+                                <p class="text-xs font-medium text-red-700">⚠️ Cons</p>
+                                <ul class="text-xs space-y-0.5 mt-1">
+                                    {% for con in summary.cons %}
+                                        <li class="text-red-600">• {{ con }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        <!-- Common Topics -->
+                        {% if summary.common_topics %}
+                            <div class="mt-3">
+                                <p class="text-xs font-medium text-blue-700">💬 Discussed Topics</p>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    {% for topic in summary.common_topics %}
+                                        <span class="badge badge-xs badge-outline">{{ topic }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Size Fit (if available) -->
+                        {% if summary.size_fit and summary.size_fit.total_fit_reviews > 0 %}
+                            <div class="mt-3 p-2 bg-white/60 rounded-lg">
+                                <p class="text-xs font-medium text-blue-700">📏 Size Fit</p>
+                                <div class="flex justify-between text-xs mt-1">
+                                    <span>Runs Small: {{ summary.size_fit.runs_small_pct }}%</span>
+                                    <span>True: {{ summary.size_fit.true_to_size_pct }}%</span>
+                                    <span>Runs Large: {{ summary.size_fit.runs_large_pct }}%</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Confidence & Explanation -->
+                        <div class="mt-3 pt-2 border-t border-blue-200">
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs text-blue-600">Confidence:</span>
+                                <progress class="progress progress-info h-1.5 w-16" value="{{ (summary.confidence_score * 100)|int }}" max="100"></progress>
+                                <span class="text-xs text-blue-600">{{ (summary.confidence_score * 100)|int }}%</span>
+                            </div>
+                            <details class="mt-1">
+                                <summary class="text-xs text-blue-500 cursor-pointer hover:underline">How AI generated this</summary>
+                                <p class="text-xs text-blue-600/80 mt-1 leading-relaxed">{{ summary.explanation }}</p>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Review List -->
+        <div class="lg:col-span-3">
+            <!-- Sort Bar -->
+            <div class="flex items-center justify-between mb-4">
+                <p class="text-sm text-base-content/60">
+                    {% if current_rating_filter %}
+                        Showing {{ current_rating_filter }}★ reviews
+                    {% else %}
+                        Showing all reviews
+                    {% endif %}
+                    ({{ pagination.total }} total)
+                </p>
+                <select class="select select-bordered select-sm"
+                        hx-get="{{ url_for('reviews.product_reviews', product_id=product.id) }}"
+                        hx-target="#review-list"
+                        hx-include="[name='rating']"
+                        name="sort">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="highest" {% if current_sort == 'highest' %}selected{% endif %}>Highest Rated</option>
+                    <option value="lowest" {% if current_sort == 'lowest' %}selected{% endif %}>Lowest Rated</option>
+                    <option value="helpful" {% if current_sort == 'helpful' %}selected{% endif %}>Most Helpful</option>
+                </select>
+            </div>
+
+            <!-- Review List -->
+            <div id="review-list">
+                {% include "reviews/partials/review_list.html" %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

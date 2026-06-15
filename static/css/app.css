@@ -1,0 +1,107 @@
+/* ReturnLess - Custom Styles */
+
+/* Smooth transitions */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* HTMX loading indicator */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+/* Skeleton loader animation */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-loader {
+    background: linear-gradient(90deg,
+        var(--fallback-b2, oklch(var(--b2))) 25%,
+        var(--fallback-b3, oklch(var(--b3))) 50%,
+        var(--fallback-b2, oklch(var(--b2))) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+}
+
+/* Product card hover effects */
+.card:hover .card-title a {
+    color: oklch(var(--p));
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: oklch(var(--b2));
+}
+
+::-webkit-scrollbar-thumb {
+    background: oklch(var(--bc) / 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: oklch(var(--bc) / 0.4);
+}
+
+/* Toast animation */
+.toast {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Green credits badge pulse */
+@keyframes pulse-green {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.badge-success {
+    animation: pulse-green 2s infinite;
+}
+
+/* Hero gradient animation */
+@keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}

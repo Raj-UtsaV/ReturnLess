@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Inspection #{{ record.id }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{{ url_for('grading.inspections_list') }}">Inspections</a></li>
+            <li class="font-medium">#{{ record.id }}</li>
+        </ul>
+    </div>
+
+    <!-- Grade Header -->
+    <div class="card bg-base-100 border border-base-200 shadow-md mb-6">
+        <div class="card-body">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-20 h-20 rounded-xl flex items-center justify-center text-3xl font-bold
+                        {% if record.grade == 'A' %}bg-success/20 text-success
+                        {% elif record.grade == 'B' %}bg-info/20 text-info
+                        {% elif record.grade == 'C' %}bg-warning/20 text-warning
+                        {% else %}bg-error/20 text-error{% endif %}">
+                        {{ record.grade }}
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">{{ record.product.name }}</h1>
+                        <p class="text-sm text-base-content/60">
+                            Inspected by {{ record.inspected_by }}
+                            • {{ record.created_at.strftime('%B %d, %Y') if record.created_at else '' }}
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-3xl font-bold">{{ record.overall_score }}<span class="text-base text-base-content/50">/100</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+        <div class="card-body">
+            <h2 class="font-bold mb-4">📊 Score Breakdown</h2>
+            <div class="space-y-3">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Functionality (40% weight)</span>
+                        <span class="font-medium">{{ record.functional_score }}/100</span>
+                    </div>
+                    <progress class="progress progress-info w-full" value="{{ record.functional_score }}" max="100"></progress>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Exterior (30% weight)</span>
+                        <span class="font-medium">{{ record.exterior_score }}/100</span>
+                    </div>
+                    <progress class="progress progress-primary w-full" value="{{ record.exterior_score }}" max="100"></progress>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Cosmetic (20% weight)</span>
+                        <span class="font-medium">{{ record.cosmetic_score }}/100</span>
+                    </div>
+                    <progress class="progress progress-warning w-full" value="{{ record.cosmetic_score }}" max="100"></progress>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span>Packaging (10% weight)</span>
+                        <span class="font-medium">{{ record.packaging_score }}/100</span>
+                    </div>
+                    <progress class="progress progress-accent w-full" value="{{ record.packaging_score }}" max="100"></progress>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Explanation -->
+    <div class="card bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-sm mb-6" data-theme="light">
+        <div class="card-body">
+            <h2 class="font-bold text-blue-800 flex items-center gap-2">🤖 AI Grade Explanation</h2>
+            <p class="text-sm text-blue-700 mt-2 leading-relaxed">{{ record.grade_explanation }}</p>
+        </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+        <div class="card-body">
+            <h2 class="font-bold mb-3">📋 Recommendation</h2>
+            <div class="flex items-center gap-3 mb-3">
+                <span class="badge badge-lg capitalize
+                    {% if record.recommendation == 'resell_as_is' %}badge-success
+                    {% elif record.recommendation == 'refurbish' %}badge-info
+                    {% elif record.recommendation == 'recycle' %}badge-warning
+                    {% else %}badge-error{% endif %}">
+                    {{ record.recommendation | replace('_', ' ') }}
+                </span>
+            </div>
+            <p class="text-sm text-base-content/70">{{ record.recommendation_explanation }}</p>
+
+            <div class="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-base-200">
+                <div>
+                    <p class="text-xs text-base-content/50">Est. Refurb Cost</p>
+                    <p class="font-bold">₹{{ "{:,.0f}".format(record.refurb_cost_estimate) }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-base-content/50">CO₂ Saved</p>
+                    <p class="font-bold text-success">{{ record.carbon_saved_if_refurbished }} kg</p>
+                </div>
+                <div>
+                    <p class="text-xs text-base-content/50">Warranty Possible</p>
+                    <p class="font-bold">{{ record.warranty_months_possible }} months</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Defects -->
+    {% if record.defects_found %}
+        <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+            <div class="card-body">
+                <h2 class="font-bold mb-3">⚠️ Defects Found</h2>
+                <ul class="space-y-1">
+                    {% for defect in record.defects_found %}
+                        <li class="text-sm flex items-center gap-2">
+                            <span class="text-error">•</span> {{ defect }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Notes -->
+    {% if record.notes %}
+        <div class="card bg-base-100 border border-base-200 shadow-sm">
+            <div class="card-body">
+                <h2 class="font-bold mb-2">📝 Notes</h2>
+                <p class="text-sm text-base-content/70">{{ record.notes }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="flex gap-3 mt-6">
+        <a href="{{ url_for('grading.inspections_list') }}" class="btn btn-ghost btn-sm">← Back to Inspections</a>
+        <a href="{{ url_for('grading.inspect_product', product_id=record.product_id) }}" class="btn btn-outline btn-sm">Re-inspect</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Inspect Product{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <h1 class="text-2xl font-bold mb-6">🔍 Inspect Product</h1>
+
+    <!-- Product Info -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+        <div class="card-body p-4 flex-row items-center gap-4">
+            {% if product.thumbnail %}
+                <img src="{{ product.thumbnail }}" class="w-16 h-16 rounded-lg object-cover">
+            {% endif %}
+            <div>
+                <h2 class="font-bold">{{ product.name }}</h2>
+                <p class="text-sm text-base-content/60">{{ product.brand }} • ₹{{ "{:,.0f}".format(product.price) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspection Form -->
+    <div class="card bg-base-100 border border-base-200 shadow-md">
+        <div class="card-body">
+            <h3 class="font-bold text-lg mb-4">Condition Assessment</h3>
+
+            <form method="POST" class="space-y-6" x-data="{
+                exterior: 90, functional: 95, cosmetic: 85, packaging: 80,
+                get overall() { return Math.round(this.functional * 0.4 + this.exterior * 0.3 + this.cosmetic * 0.2 + this.packaging * 0.1) },
+                get grade() { const s = this.overall; return s >= 90 ? 'A' : s >= 70 ? 'B' : s >= 50 ? 'C' : 'D' }
+            }">
+                <!-- Score Sliders -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Exterior (Physical Condition)</span>
+                            <span class="label-text-alt font-bold" x-text="exterior + '/100'"></span>
+                        </label>
+                        <input type="range" name="exterior_score" min="0" max="100" x-model="exterior"
+                               class="range range-sm range-primary">
+                        <p class="text-xs text-base-content/50 mt-1">Scratches, dents, physical wear</p>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Functionality</span>
+                            <span class="label-text-alt font-bold" x-text="functional + '/100'"></span>
+                        </label>
+                        <input type="range" name="functional_score" min="0" max="100" x-model="functional"
+                               class="range range-sm range-info">
+                        <p class="text-xs text-base-content/50 mt-1">All features working properly</p>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Cosmetic</span>
+                            <span class="label-text-alt font-bold" x-text="cosmetic + '/100'"></span>
+                        </label>
+                        <input type="range" name="cosmetic_score" min="0" max="100" x-model="cosmetic"
+                               class="range range-sm range-warning">
+                        <p class="text-xs text-base-content/50 mt-1">Visual appearance and cleanliness</p>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Packaging & Accessories</span>
+                            <span class="label-text-alt font-bold" x-text="packaging + '/100'"></span>
+                        </label>
+                        <input type="range" name="packaging_score" min="0" max="100" x-model="packaging"
+                               class="range range-sm range-accent">
+                        <p class="text-xs text-base-content/50 mt-1">Original box, manuals, accessories</p>
+                    </div>
+                </div>
+
+                <!-- Live Grade Preview -->
+                <div class="bg-base-200/50 rounded-xl p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium">Estimated Grade</p>
+                            <p class="text-xs text-base-content/50">Based on current scores</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl font-bold"
+                                  :class="{
+                                      'text-success': grade === 'A',
+                                      'text-info': grade === 'B',
+                                      'text-warning': grade === 'C',
+                                      'text-error': grade === 'D'
+                                  }"
+                                  x-text="'Grade ' + grade"></span>
+                            <span class="text-sm text-base-content/60" x-text="overall + '/100'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Defects -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">Defects Found (one per line)</span></label>
+                    <textarea name="defects" class="textarea textarea-bordered h-24"
+                              placeholder="Screen has minor scratch on corner&#10;Missing USB cable&#10;Box slightly dented"></textarea>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-control">
+                    <label class="label"><span class="label-text font-medium">Inspector Notes</span></label>
+                    <textarea name="notes" class="textarea textarea-bordered"
+                              placeholder="Additional observations..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">
+                    Complete Inspection & Generate Grade
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Previous Inspections -->
+    {% if previous_inspections %}
+        <h3 class="font-bold text-lg mt-8 mb-4">Previous Inspections</h3>
+        <div class="space-y-2">
+            {% for rec in previous_inspections %}
+                <a href="{{ url_for('grading.inspection_detail', inspection_id=rec.id) }}"
+                   class="card bg-base-100 border border-base-200 p-3 flex-row items-center gap-3 hover:border-primary transition">
+                    <span class="badge badge-lg font-bold
+                        {% if rec.grade == 'A' %}badge-success
+                        {% elif rec.grade == 'B' %}badge-info
+                        {% elif rec.grade == 'C' %}badge-warning
+                        {% else %}badge-error{% endif %}">{{ rec.grade }}</span>
+                    <div class="flex-1">
+                        <p class="text-sm">{{ rec.overall_score }}/100 • {{ rec.recommendation | replace('_', ' ') | title }}</p>
+                        <p class="text-xs text-base-content/50">{{ rec.created_at.strftime('%b %d, %Y') if rec.created_at else '' }} by {{ rec.inspected_by }}</p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

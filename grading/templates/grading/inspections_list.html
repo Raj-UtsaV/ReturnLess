@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Quality Grading{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-2">🔍 Quality Grading</h1>
+    <p class="text-base-content/60 mb-8">Inspect returned products and assign grades for refurbishment</p>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Total Inspected</div>
+            <div class="stat-value text-xl">{{ stats.total }}</div>
+        </div>
+        {% for grade in ['A', 'B', 'C', 'D'] %}
+            <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+                <div class="stat-title text-xs">Grade {{ grade }}</div>
+                <div class="stat-value text-xl
+                    {% if grade == 'A' %}text-success
+                    {% elif grade == 'B' %}text-info
+                    {% elif grade == 'C' %}text-warning
+                    {% else %}text-error{% endif %}">
+                    {{ stats.by_grade.get(grade, {}).get('count', 0) }}
+                </div>
+                <div class="stat-desc">{{ stats.by_grade.get(grade, {}).get('pct', 0) }}%</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Filter -->
+    <div class="flex items-center gap-2 mb-6">
+        <span class="text-sm font-medium">Filter:</span>
+        <a href="{{ url_for('grading.inspections_list') }}" class="btn btn-xs {% if not current_grade %}btn-primary{% else %}btn-ghost{% endif %}">All</a>
+        {% for grade in ['A', 'B', 'C', 'D'] %}
+            <a href="?grade={{ grade }}" class="btn btn-xs {% if current_grade == grade %}btn-primary{% else %}btn-ghost{% endif %}">Grade {{ grade }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Inspections Table -->
+    {% if inspection_list %}
+        <div class="overflow-x-auto">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Grade</th>
+                        <th>Score</th>
+                        <th>Recommendation</th>
+                        <th>CO₂ Saved</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in inspection_list %}
+                        <tr class="hover">
+                            <td class="max-w-[200px]">
+                                <p class="font-medium text-sm truncate">{{ rec.product.name }}</p>
+                                <p class="text-xs text-base-content/50">By: {{ rec.inspected_by }}</p>
+                            </td>
+                            <td>
+                                <span class="badge
+                                    {% if rec.grade == 'A' %}badge-success
+                                    {% elif rec.grade == 'B' %}badge-info
+                                    {% elif rec.grade == 'C' %}badge-warning
+                                    {% else %}badge-error{% endif %}
+                                    badge-lg font-bold">
+                                    {{ rec.grade }}
+                                </span>
+                            </td>
+                            <td>{{ rec.overall_score }}/100</td>
+                            <td>
+                                <span class="badge badge-ghost badge-sm capitalize">{{ rec.recommendation | replace('_', ' ') }}</span>
+                            </td>
+                            <td class="text-success">{{ rec.carbon_saved_if_refurbished }} kg</td>
+                            <td class="text-xs">{{ rec.created_at.strftime('%b %d') if rec.created_at else '' }}</td>
+                            <td>
+                                <a href="{{ url_for('grading.inspection_detail', inspection_id=rec.id) }}" class="btn btn-ghost btn-xs">View</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-16">
+            <div class="text-5xl mb-4">🔍</div>
+            <h3 class="text-xl font-semibold">No inspections yet</h3>
+            <p class="text-base-content/60 mt-2">Inspections will appear here when returns are processed.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

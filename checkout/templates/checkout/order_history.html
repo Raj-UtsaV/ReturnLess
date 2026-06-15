@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">📦 My Orders</h1>
+
+    {% if order_list %}
+        <div class="space-y-4">
+            {% for order in order_list %}
+                <div class="card bg-base-100 border border-base-200 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <p class="font-bold">{{ order.order_number }}</p>
+                                    <span class="badge
+                                        {% if order.status == 'confirmed' %}badge-success
+                                        {% elif order.status == 'shipped' %}badge-info
+                                        {% elif order.status == 'delivered' %}badge-primary
+                                        {% elif order.status == 'cancelled' %}badge-error
+                                        {% elif order.status == 'returned' %}badge-warning
+                                        {% else %}badge-ghost{% endif %}
+                                        badge-sm">
+                                        {{ order.status | title }}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-base-content/60 mt-1">
+                                    {{ order.created_at.strftime('%B %d, %Y') if order.created_at else '' }}
+                                    • {{ order.item_count }} item{{ 's' if order.item_count > 1 else '' }}
+                                    • ₹{{ "{:,.0f}".format(order.total) }}
+                                </p>
+                                <p class="text-xs text-success mt-1">+{{ order.credits_earned }} 🌱 credits earned</p>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <a href="{{ url_for('checkout.order_confirmation', order_number=order.order_number) }}"
+                                   class="btn btn-ghost btn-sm">View Details</a>
+                                {% if order.status in ('pending', 'confirmed', 'shipped') %}
+                                    <a href="{{ url_for('returns.cancel_order', order_id=order.id) }}"
+                                       class="btn btn-error btn-outline btn-sm">Cancel</a>
+                                {% elif order.status == 'delivered' %}
+                                    <a href="{{ url_for('checkout.order_confirmation', order_number=order.order_number) }}"
+                                       class="btn btn-warning btn-outline btn-sm">Return</a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Order Items Preview -->
+                        <div class="flex gap-2 mt-3 overflow-x-auto pb-1">
+                            {% for item in order.items[:4] %}
+                                <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-base-200 border border-base-200">
+                                    {% if item.product_thumbnail %}
+                                        <img src="{{ item.product_thumbnail }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center text-xs">📦</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                            {% if order.item_count > 4 %}
+                                <div class="w-12 h-12 rounded-lg flex-shrink-0 bg-base-200 border border-base-200 flex items-center justify-center text-xs font-medium">
+                                    +{{ order.item_count - 4 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if orders.pages > 1 %}
+            <div class="flex justify-center mt-8">
+                <div class="join">
+                    {% if orders.has_prev %}
+                        <a href="?page={{ orders.page - 1 }}" class="join-item btn btn-sm">«</a>
+                    {% endif %}
+                    {% for p in range(1, orders.pages + 1) %}
+                        <a href="?page={{ p }}" class="join-item btn btn-sm {% if p == orders.page %}btn-active{% endif %}">{{ p }}</a>
+                    {% endfor %}
+                    {% if orders.has_next %}
+                        <a href="?page={{ orders.page + 1 }}" class="join-item btn btn-sm">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4">📭</div>
+            <h2 class="text-2xl font-bold">No orders yet</h2>
+            <p class="text-base-content/60 mt-2">Start shopping to place your first order!</p>
+            <a href="{{ url_for('products.catalog') }}" class="btn btn-primary mt-6">Browse Products</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-2xl">
+    <!-- Success Animation -->
+    <div class="text-center mb-8">
+        <div class="text-6xl mb-4 animate-bounce">🎉</div>
+        <h1 class="text-3xl font-bold text-success">Order Confirmed!</h1>
+        <p class="text-base-content/60 mt-2">Thank you for shopping sustainably</p>
+    </div>
+
+    <!-- Order Details Card -->
+    <div class="card bg-base-100 border border-base-200 shadow-md">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <p class="text-sm text-base-content/60">Order Number</p>
+                    <p class="font-bold text-lg">{{ order.order_number }}</p>
+                </div>
+                <div class="badge badge-lg
+                    {% if order.status == 'confirmed' %}badge-success
+                    {% elif order.status == 'shipped' %}badge-info
+                    {% elif order.status == 'delivered' %}badge-primary
+                    {% elif order.status == 'cancelled' %}badge-error
+                    {% elif order.status == 'returned' %}badge-warning
+                    {% else %}badge-ghost{% endif %}">{{ order.status | title }}</div>
+            </div>
+
+            <!-- Items -->
+            <div class="space-y-3 border-t border-base-200 pt-4">
+                {% for item in order.items %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 rounded-lg overflow-hidden bg-base-200 flex-shrink-0">
+                            {% if item.product_thumbnail %}
+                                <img src="{{ item.product_thumbnail }}" class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium">{{ item.product_name }}</p>
+                            <p class="text-xs text-base-content/50">
+                                Qty: {{ item.quantity }}{% if item.size %} • Size: {{ item.size }}{% endif %}
+                                {% if item.product_type == 'refurbished' %} • ♻️ Refurbished{% endif %}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-medium">₹{{ "{:,.0f}".format(item.subtotal) }}</p>
+                            {% if order.status == 'delivered' and not item.return_request %}
+                                <a href="{{ url_for('returns.return_item', order_id=order.id, item_id=item.id) }}"
+                                   class="btn btn-warning btn-xs mt-1">↩️ Return</a>
+                            {% elif item.return_request %}
+                                <span class="badge badge-xs badge-warning mt-1">Returned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Totals -->
+            <div class="border-t border-base-200 pt-4 mt-4 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>₹{{ "{:,.0f}".format(order.subtotal) }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span>Delivery{% if order.eco_shipping %} (Eco 🌿){% endif %}</span>
+                    {% if order.delivery_fee == 0 %}
+                        <span class="text-success">FREE</span>
+                    {% else %}
+                        <span>₹{{ "{:,.0f}".format(order.delivery_fee) }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex justify-between font-bold text-lg pt-2 border-t border-base-200">
+                    <span>Total Paid</span>
+                    <span>₹{{ "{:,.0f}".format(order.total) }}</span>
+                </div>
+            </div>
+
+            <!-- Green Credits Earned -->
+            <div class="bg-gradient-to-r from-returnless-500 to-emerald-400 rounded-xl p-4 mt-4 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-80">🌱 Green Credits Earned</p>
+                        <p class="text-2xl font-bold">+{{ order.credits_earned }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs opacity-80">Your balance</p>
+                        <p class="font-bold">{{ current_user.green_credits }}</p>
+                        <p class="text-xs opacity-80">{{ current_user.credit_tier.name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Info -->
+            <div class="bg-base-200/50 rounded-lg p-4 mt-4">
+                <p class="font-medium text-sm">📦 Estimated Delivery</p>
+                <p class="text-sm text-base-content/70 mt-1">
+                    {{ order.estimated_delivery_min }}-{{ order.estimated_delivery_max }} business days
+                </p>
+                <p class="text-sm text-base-content/70 mt-2">
+                    📍 {{ order.shipping_name }}, {{ order.shipping_address }}, {{ order.shipping_city }} {{ order.shipping_postal }}
+                </p>
+            </div>
+
+            <!-- Order Status Tracker -->
+            <div class="mt-4">
+                <p class="font-medium text-sm mb-3">📋 Order Status</p>
+                <ul class="steps steps-vertical lg:steps-horizontal w-full">
+                    <li class="step {% if order.status in ('confirmed', 'shipped', 'delivered', 'returned') %}step-primary{% endif %}">
+                        Confirmed
+                    </li>
+                    <li class="step {% if order.status in ('shipped', 'delivered', 'returned') %}step-primary{% endif %}">
+                        Shipped
+                    </li>
+                    <li class="step {% if order.status in ('delivered', 'returned') %}step-primary{% endif %}">
+                        Delivered
+                    </li>
+                    {% if order.status == 'returned' %}
+                        <li class="step step-warning">
+                            Returned
+                        </li>
+                    {% elif order.status == 'cancelled' %}
+                        <li class="step step-error">
+                            Cancelled
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- DEBUG: Status Change Buttons (for testing returns) -->
+            {% if current_user.is_admin or True %}
+                <div class="mt-4 p-3 bg-warning/10 border border-warning/30 rounded-lg">
+                    <p class="text-xs font-bold text-warning mb-2">🛠️ Debug: Change Order Status</p>
+                    <div class="flex flex-wrap gap-2">
+                        {% for status in ['confirmed', 'shipped', 'delivered'] %}
+                            {% if order.status != status %}
+                                <form method="POST" action="{{ url_for('checkout.debug_change_status', order_id=order.id) }}">
+                                    <input type="hidden" name="status" value="{{ status }}">
+                                    <button type="submit" class="btn btn-xs btn-outline btn-warning">
+                                        → {{ status | title }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="btn btn-xs btn-active btn-warning no-animation cursor-default">{{ status | title }} ✓</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-xs text-base-content/50 mt-1">Use this to test cancel/return flows</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row gap-3 mt-6 justify-center">
+        {% if order.status in ('pending', 'confirmed', 'shipped') %}
+            <a href="{{ url_for('returns.cancel_order', order_id=order.id) }}" class="btn btn-error btn-outline btn-sm">
+                Cancel Order
+            </a>
+        {% elif order.status == 'delivered' %}
+            <p class="text-sm text-base-content/60">👆 Click "Return" next to any item above to start a return</p>
+        {% endif %}
+        <a href="{{ url_for('checkout.order_history') }}" class="btn btn-outline btn-sm">View All Orders</a>
+        <a href="{{ url_for('products.catalog') }}" class="btn btn-primary btn-sm">Continue Shopping</a>
+    </div>
+</div>
+{% endblock %}

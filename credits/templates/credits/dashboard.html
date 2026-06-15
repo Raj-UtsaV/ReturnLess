@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Green Credits{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">🌱 Green Credits</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Balance Card -->
+        <div class="lg:col-span-2">
+            <div class="card bg-gradient-to-br from-returnless-600 to-emerald-500 text-white shadow-xl">
+                <div class="card-body">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-80">Available Balance</p>
+                            <p class="text-5xl font-bold mt-1">{{ summary.balance }}</p>
+                            <p class="text-sm opacity-70 mt-2">Lifetime earned: {{ summary.lifetime }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-4xl">{{ summary.tier.current.icon }}</p>
+                            <p class="text-xl font-bold mt-1">{{ summary.tier.current.name }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Tier Progress -->
+                    {% if summary.tier.next %}
+                        <div class="mt-6">
+                            <div class="flex justify-between text-sm opacity-80 mb-1">
+                                <span>{{ summary.tier.current.name }}</span>
+                                <span>{{ summary.tier.next.name }}</span>
+                            </div>
+                            <progress class="progress progress-warning w-full h-3" value="{{ summary.tier.progress }}" max="100"></progress>
+                            <p class="text-xs opacity-70 mt-1">{{ summary.tier.credits_to_next }} credits to {{ summary.tier.next.name }}</p>
+                        </div>
+                    {% else %}
+                        <p class="text-sm opacity-80 mt-4">🎉 You've reached the highest tier!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- How to Earn -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm mt-6">
+                <div class="card-body">
+                    <h2 class="font-bold text-lg mb-4">💡 How to Earn Credits</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="flex items-center gap-3 p-3 bg-success/5 rounded-lg">
+                            <span class="text-2xl">🛍️</span>
+                            <div>
+                                <p class="font-medium text-sm">Standard Purchase</p>
+                                <p class="text-success font-bold">+20 credits</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-success/5 rounded-lg">
+                            <span class="text-2xl">♻️</span>
+                            <div>
+                                <p class="font-medium text-sm">Refurbished Purchase</p>
+                                <p class="text-success font-bold">+50 credits</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-success/5 rounded-lg">
+                            <span class="text-2xl">🌿</span>
+                            <div>
+                                <p class="font-medium text-sm">Eco Shipping</p>
+                                <p class="text-success font-bold">+10 credits</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-error/5 rounded-lg">
+                            <span class="text-2xl">↩️</span>
+                            <div>
+                                <p class="font-medium text-sm">Return (non-defective)</p>
+                                <p class="text-error font-bold">-15 credits</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Stats -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="font-bold text-sm mb-3">📊 Stats</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-base-content/60">Total Earned</span>
+                            <span class="font-medium text-success">+{{ summary.total_earned }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-base-content/60">Total Deducted</span>
+                            <span class="font-medium text-error">-{{ summary.total_deducted }}</span>
+                        </div>
+                        <div class="flex justify-between border-t pt-2">
+                            <span class="text-sm font-medium">Net Balance</span>
+                            <span class="font-bold">{{ summary.balance }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tiers Info -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="font-bold text-sm mb-3">🏅 Tiers</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between p-2 rounded {% if summary.tier.current.name == 'Silver' %}bg-slate-100 border border-slate-300{% endif %}">
+                            <span class="text-sm">🥈 Silver</span>
+                            <span class="text-xs text-base-content/50">0+</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded {% if summary.tier.current.name == 'Gold' %}bg-amber-50 border border-amber-300{% endif %}">
+                            <span class="text-sm">🥇 Gold</span>
+                            <span class="text-xs text-base-content/50">500+</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded {% if summary.tier.current.name == 'Platinum' %}bg-violet-50 border border-violet-300{% endif %}">
+                            <span class="text-sm">💎 Platinum</span>
+                            <span class="text-xs text-base-content/50">1500+</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded {% if summary.tier.current.name == 'Green Hero' %}bg-emerald-50 border border-emerald-300{% endif %}">
+                            <span class="text-sm">🌍 Green Hero</span>
+                            <span class="text-xs text-base-content/50">3000+</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            {% if summary.recent_transactions %}
+                <div class="card bg-base-100 border border-base-200 shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="font-bold text-sm mb-3">🕐 Recent Activity</h3>
+                        <div class="space-y-2">
+                            {% for tx in summary.recent_transactions %}
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xs truncate max-w-[180px]">{{ tx.description }}</p>
+                                    <span class="text-xs font-bold {% if tx.amount > 0 %}text-success{% else %}text-error{% endif %}">
+                                        {{ "%+d"|format(tx.amount) }}
+                                    </span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <a href="{{ url_for('credits.history') }}" class="btn btn-ghost btn-xs w-full mt-3">View All →</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

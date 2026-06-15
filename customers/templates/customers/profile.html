@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">My Account</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Profile Card -->
+        <div class="card bg-base-100 shadow-md border border-base-200">
+            <div class="card-body items-center text-center">
+                <div class="avatar placeholder mb-4">
+                    <div class="bg-returnless-500 text-white rounded-full w-20">
+                        <span class="text-2xl">{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</span>
+                    </div>
+                </div>
+                <h2 class="card-title">{{ current_user.full_name }}</h2>
+                <p class="text-sm text-base-content/60">{{ current_user.email }}</p>
+                <div class="badge badge-{{ current_user.credit_tier.color }} badge-lg mt-2">
+                    {{ current_user.credit_tier.name }} Tier
+                </div>
+            </div>
+        </div>
+
+        <!-- Green Credits -->
+        <div class="card bg-gradient-to-br from-returnless-500 to-emerald-400 text-white shadow-xl">
+            <div class="card-body">
+                <h3 class="font-bold text-white/80">🌱 Green Credits</h3>
+                <p class="text-4xl font-bold">{{ current_user.green_credits }}</p>
+                <p class="text-sm text-white/70">Lifetime: {{ current_user.lifetime_credits }} credits earned</p>
+                <div class="mt-4">
+                    <p class="text-xs text-white/60">Current Tier</p>
+                    <p class="text-xl font-bold">{{ current_user.credit_tier.name }}</p>
+                </div>
+                <!-- Tier Progress -->
+                <progress class="progress progress-warning w-full mt-2"
+                          value="{{ current_user.lifetime_credits }}"
+                          max="{{ current_user.credit_tier.min + 500 }}"></progress>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card bg-base-100 shadow-md border border-base-200">
+            <div class="card-body">
+                <h3 class="font-bold">📊 Your Impact</h3>
+                <div class="stats stats-vertical shadow-none">
+                    <div class="stat px-0">
+                        <div class="stat-title text-xs">CO₂ Saved</div>
+                        <div class="stat-value text-lg text-success">0 kg</div>
+                    </div>
+                    <div class="stat px-0">
+                        <div class="stat-title text-xs">Returns Avoided</div>
+                        <div class="stat-value text-lg">0</div>
+                    </div>
+                    <div class="stat px-0">
+                        <div class="stat-title text-xs">Refurbished Bought</div>
+                        <div class="stat-value text-lg">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

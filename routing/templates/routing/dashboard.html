@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Warehouse Routing{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-2">🏭 Warehouse Routing</h1>
+    <p class="text-base-content/60 mb-8">AI-powered return routing — invisible to customers</p>
+
+    <!-- Warehouse Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Warehouses</div>
+            <div class="stat-value text-xl">{{ stats.total_warehouses }}</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Total Capacity</div>
+            <div class="stat-value text-xl">{{ stats.total_capacity }}</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Current Load</div>
+            <div class="stat-value text-xl">{{ stats.total_load }}</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Avg Utilization</div>
+            <div class="stat-value text-xl">{{ stats.avg_utilization }}%</div>
+        </div>
+    </div>
+
+    <!-- Warehouses Grid -->
+    <h2 class="text-xl font-bold mb-4">Warehouses</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        {% for wh in stats.warehouses %}
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm">{{ wh.name }}</h3>
+                            <p class="text-xs text-base-content/60">{{ wh.city }}, {{ wh.state }}</p>
+                        </div>
+                        <span class="badge badge-ghost badge-sm">{{ wh.code }}</span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>Utilization</span>
+                            <span>{{ wh.utilization_pct }}%</span>
+                        </div>
+                        <progress class="progress w-full h-2
+                            {% if wh.utilization_pct > 80 %}progress-error
+                            {% elif wh.utilization_pct > 60 %}progress-warning
+                            {% else %}progress-success{% endif %}"
+                            value="{{ wh.utilization_pct }}" max="100"></progress>
+                    </div>
+                    <div class="flex justify-between text-xs mt-2 text-base-content/50">
+                        <span>{{ wh.current_load }}/{{ wh.capacity }} items</span>
+                        <span class="capitalize">{{ wh.specialization or 'general' }}</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Routing Decisions -->
+    <h2 class="text-xl font-bold mb-4">Recent Routing Decisions</h2>
+    {% if decision_list %}
+        <div class="overflow-x-auto">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Return</th>
+                        <th>Product</th>
+                        <th>Routed To</th>
+                        <th>Score</th>
+                        <th>Explanation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in decision_list %}
+                        <tr class="hover">
+                            <td>#{{ d.return_request_id }}</td>
+                            <td class="max-w-[150px] truncate">{{ d.product.name if d.product else 'N/A' }}</td>
+                            <td>
+                                <span class="font-medium">{{ d.warehouse.name }}</span>
+                                <span class="text-xs text-base-content/50">({{ d.warehouse.city }})</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary badge-sm">{{ "%.2f"|format(d.routing_score) }}</span>
+                            </td>
+                            <td class="text-xs max-w-[300px] truncate">{{ d.explanation }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <p class="text-base-content/60">No routing decisions yet. They'll appear when returns are processed.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

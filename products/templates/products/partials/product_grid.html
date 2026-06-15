@@ -1,0 +1,43 @@
+<!-- Product Grid Partial (HTMX target) -->
+{% if products %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for product in products %}
+            {% include "products/partials/product_card.html" %}
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+        <div class="flex justify-center mt-10">
+            <div class="join">
+                {% if pagination.has_prev %}
+                    <a href="?page={{ pagination.page - 1 }}" class="join-item btn btn-sm">«</a>
+                {% endif %}
+
+                {% for p in range(1, pagination.pages + 1) %}
+                    {% if p == pagination.page %}
+                        <button class="join-item btn btn-sm btn-active">{{ p }}</button>
+                    {% elif p <= 3 or p >= pagination.pages - 2 or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+                        <a href="?page={{ p }}" class="join-item btn btn-sm">{{ p }}</a>
+                    {% elif p == 4 or p == pagination.pages - 3 %}
+                        <button class="join-item btn btn-sm btn-disabled">...</button>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination.has_next %}
+                    <a href="?page={{ pagination.page + 1 }}" class="join-item btn btn-sm">»</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-20">
+        <div class="text-6xl mb-4">🔍</div>
+        <h3 class="text-xl font-semibold">No products found</h3>
+        <p class="text-base-content/60 mt-2 max-w-sm mx-auto">
+            Try adjusting your filters or search query to find what you're looking for.
+        </p>
+        <a href="{{ url_for('products.catalog') }}" class="btn btn-primary btn-sm mt-4">Clear Filters</a>
+    </div>
+{% endif %}

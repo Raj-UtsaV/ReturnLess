@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold">🛠️ Admin Dashboard</h1>
+            <p class="text-base-content/60 mt-1">ReturnLess Platform Overview</p>
+        </div>
+        <div class="badge badge-primary badge-lg">Admin</div>
+    </div>
+
+    <!-- Top Stats Row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Products</div>
+            <div class="stat-value text-xl">{{ stats.products.total }}</div>
+            <div class="stat-desc text-success">{{ stats.products.refurbished }} refurbished</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Customers</div>
+            <div class="stat-value text-xl">{{ stats.customers.total }}</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Orders</div>
+            <div class="stat-value text-xl">{{ stats.orders.total }}</div>
+            <div class="stat-desc">₹{{ "{:,.0f}".format(stats.orders.revenue) }}</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Returns</div>
+            <div class="stat-value text-xl">{{ stats.returns.total }}</div>
+            <div class="stat-desc text-warning">{{ stats.returns.pending }} pending</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">CO₂ Saved</div>
+            <div class="stat-value text-xl text-success">{{ stats.sustainability.co2_saved_kg }}kg</div>
+        </div>
+        <div class="stat bg-base-100 rounded-xl border border-base-200 shadow-sm p-3">
+            <div class="stat-title text-xs">Inspections</div>
+            <div class="stat-value text-xl">{{ stats.grading.total }}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Sustainability Widget -->
+        <div class="card bg-gradient-to-br from-returnless-50 to-emerald-50 border border-returnless-200 shadow-sm">
+            <div class="card-body">
+                <h2 class="font-bold text-lg text-returnless-800">🌍 Sustainability Impact</h2>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="text-center p-4 bg-white/60 rounded-xl">
+                        <p class="text-3xl font-bold text-success">{{ stats.sustainability.co2_saved_kg }}</p>
+                        <p class="text-xs text-base-content/60 mt-1">kg CO₂ Saved</p>
+                    </div>
+                    <div class="text-center p-4 bg-white/60 rounded-xl">
+                        <p class="text-3xl font-bold text-success">{{ stats.products.refurbished }}</p>
+                        <p class="text-xs text-base-content/60 mt-1">Refurbished Products</p>
+                    </div>
+                    <div class="text-center p-4 bg-white/60 rounded-xl">
+                        <p class="text-3xl font-bold text-primary">{{ stats.credits.issued }}</p>
+                        <p class="text-xs text-base-content/60 mt-1">Credits Issued</p>
+                    </div>
+                    <div class="text-center p-4 bg-white/60 rounded-xl">
+                        <p class="text-3xl font-bold text-error">{{ stats.credits.deducted }}</p>
+                        <p class="text-xs text-base-content/60 mt-1">Credits Deducted</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Returns Widget -->
+        <div class="card bg-base-100 border border-base-200 shadow-sm">
+            <div class="card-body">
+                <h2 class="font-bold text-lg">🔄 Returns Overview</h2>
+                <div class="grid grid-cols-3 gap-4 mt-4">
+                    <div class="text-center p-3 bg-warning/10 rounded-xl">
+                        <p class="text-2xl font-bold text-warning">{{ stats.returns.pending }}</p>
+                        <p class="text-xs">Pending</p>
+                    </div>
+                    <div class="text-center p-3 bg-info/10 rounded-xl">
+                        <p class="text-2xl font-bold text-info">{{ stats.returns.approved }}</p>
+                        <p class="text-xs">Approved</p>
+                    </div>
+                    <div class="text-center p-3 bg-success/10 rounded-xl">
+                        <p class="text-2xl font-bold text-success">{{ stats.returns.completed }}</p>
+                        <p class="text-xs">Completed</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('routing.routing_dashboard') }}" class="btn btn-ghost btn-sm mt-4">View Routing →</a>
+            </div>
+        </div>
+
+        <!-- Orders by Status -->
+        <div class="card bg-base-100 border border-base-200 shadow-sm">
+            <div class="card-body">
+                <h2 class="font-bold text-lg">📦 Orders by Status</h2>
+                <div class="space-y-3 mt-4">
+                    {% for status, count in stats.orders.by_status.items() %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm capitalize flex items-center gap-2">
+                                {% if status == 'confirmed' %}✅
+                                {% elif status == 'shipped' %}🚚
+                                {% elif status == 'delivered' %}📬
+                                {% elif status == 'cancelled' %}❌
+                                {% endif %}
+                                {{ status }}
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <progress class="progress w-32 h-2
+                                    {% if status == 'delivered' %}progress-success
+                                    {% elif status == 'cancelled' %}progress-error
+                                    {% else %}progress-primary{% endif %}"
+                                    value="{{ count }}" max="{{ stats.orders.total or 1 }}"></progress>
+                                <span class="text-sm font-medium w-8 text-right">{{ count }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 pt-3 border-t border-base-200">
+                    <div class="flex justify-between">
+                        <span class="text-sm font-medium">Total Revenue</span>
+                        <span class="font-bold text-success">₹{{ "{:,.0f}".format(stats.orders.revenue) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality Grading Distribution -->
+        <div class="card bg-base-100 border border-base-200 shadow-sm">
+            <div class="card-body">
+                <h2 class="font-bold text-lg">🔍 Quality Grades</h2>
+                {% if stats.grading.total > 0 %}
+                    <div class="grid grid-cols-4 gap-3 mt-4">
+                        {% for grade, count in stats.grading.distribution.items() %}
+                            <div class="text-center p-3 rounded-xl
+                                {% if grade == 'A' %}bg-success/10
+                                {% elif grade == 'B' %}bg-info/10
+                                {% elif grade == 'C' %}bg-warning/10
+                                {% else %}bg-error/10{% endif %}">
+                                <p class="text-2xl font-bold
+                                    {% if grade == 'A' %}text-success
+                                    {% elif grade == 'B' %}text-info
+                                    {% elif grade == 'C' %}text-warning
+                                    {% else %}text-error{% endif %}">{{ count }}</p>
+                                <p class="text-xs font-medium">Grade {{ grade }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-sm text-base-content/60 mt-4">No inspections yet.</p>
+                {% endif %}
+                <a href="{{ url_for('grading.inspections_list') }}" class="btn btn-ghost btn-sm mt-4">View All →</a>
+            </div>
+        </div>
+
+        <!-- Warehouse Utilization -->
+        <div class="card bg-base-100 border border-base-200 shadow-sm lg:col-span-2">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-bold text-lg">🏭 Warehouse Utilization</h2>
+                    <span class="badge badge-ghost">Avg: {{ stats.warehouses.avg_utilization }}%</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                    {% for wh in stats.warehouses.data %}
+                        <div class="p-3 bg-base-200/50 rounded-xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <p class="font-medium text-sm">{{ wh.name }}</p>
+                                    <p class="text-xs text-base-content/50">{{ wh.city }} • {{ wh.specialization or 'general' }}</p>
+                                </div>
+                                <span class="badge badge-sm badge-ghost">{{ wh.code }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <progress class="progress flex-1 h-2
+                                    {% if wh.utilization_pct > 80 %}progress-error
+                                    {% elif wh.utilization_pct > 60 %}progress-warning
+                                    {% else %}progress-success{% endif %}"
+                                    value="{{ wh.utilization_pct }}" max="100"></progress>
+                                <span class="text-xs font-medium w-10 text-right">{{ wh.utilization_pct }}%</span>
+                            </div>
+                            <p class="text-xs text-base-content/50 mt-1">{{ wh.current_load }}/{{ wh.capacity }} items</p>
+                        </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ url_for('routing.routing_dashboard') }}" class="btn btn-ghost btn-sm mt-4">Full Dashboard →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="mt-8">
+        <h2 class="font-bold text-lg mb-4">⚡ Quick Actions</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <a href="{{ url_for('admin.admin_returns') }}" class="btn btn-outline btn-sm">🔄 Returns</a>
+            <a href="{{ url_for('grading.inspections_list') }}" class="btn btn-outline btn-sm">🔍 Inspections</a>
+            <a href="{{ url_for('routing.routing_dashboard') }}" class="btn btn-outline btn-sm">🏭 Routing</a>
+            <a href="{{ url_for('products.catalog') }}" class="btn btn-outline btn-sm">📦 Products</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

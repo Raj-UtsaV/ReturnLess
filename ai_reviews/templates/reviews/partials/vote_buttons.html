@@ -1,0 +1,20 @@
+<!-- Helpful Vote Buttons (HTMX swappable) -->
+<div class="flex items-center gap-2" id="vote-{{ review.id }}">
+    <span class="text-xs text-base-content/50">Helpful?</span>
+    <form hx-post="{{ url_for('reviews.vote_helpful', review_id=review.id) }}"
+          hx-target="#vote-{{ review.id }}"
+          hx-swap="outerHTML">
+        <input type="hidden" name="helpful" value="true">
+        <button type="submit" class="btn btn-ghost btn-xs gap-1">
+            👍 {{ review.helpful_count }}
+        </button>
+    </form>
+    <form hx-post="{{ url_for('reviews.vote_helpful', review_id=review.id) }}"
+          hx-target="#vote-{{ review.id }}"
+          hx-swap="outerHTML">
+        <input type="hidden" name="helpful" value="false">
+        <button type="submit" class="btn btn-ghost btn-xs gap-1">
+            👎 {{ review.not_helpful_count }}
+        </button>
+    </form>
+</div>

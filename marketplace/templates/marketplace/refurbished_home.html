@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Refurbished Marketplace{% endblock %}
+
+{% block content %}
+<!-- Marketplace Hero -->
+<section class="bg-gradient-to-br from-returnless-600 via-emerald-600 to-teal-600 text-white py-12">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div class="max-w-xl">
+                <div class="badge badge-success badge-lg mb-3 text-white border-white/30">♻️ Certified Refurbished</div>
+                <h1 class="text-4xl font-bold leading-tight">
+                    Same Performance.<br>
+                    <span class="text-emerald-200">Lower Price. Better Planet.</span>
+                </h1>
+                <p class="mt-4 opacity-90 text-lg">
+                    Every refurbished product is inspected, graded, and backed by full warranty.
+                    Save money while reducing e-waste.
+                </p>
+                <div class="flex flex-wrap gap-3 mt-6">
+                    <div class="badge badge-lg bg-white/20 border-white/30 text-white">✅ AI-Inspected</div>
+                    <div class="badge badge-lg bg-white/20 border-white/30 text-white">🛡️ Full Warranty</div>
+                    <div class="badge badge-lg bg-white/20 border-white/30 text-white">+50 🌱 Credits</div>
+                </div>
+            </div>
+            <!-- Impact Stats -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+                    <p class="text-3xl font-bold">{{ stats.total_products }}</p>
+                    <p class="text-xs opacity-80 mt-1">Products</p>
+                </div>
+                <div class="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+                    <p class="text-3xl font-bold">{{ stats.co2_saved }}</p>
+                    <p class="text-xs opacity-80 mt-1">kg CO₂ Saved</p>
+                </div>
+                <div class="text-center p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+                    <p class="text-3xl font-bold">₹{{ "{:,.0f}".format(stats.total_savings) }}</p>
+                    <p class="text-xs opacity-80 mt-1">Total Savings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trust Badges -->
+<section class="bg-base-200 border-b border-base-300 py-4">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-wrap items-center justify-center gap-6 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="text-lg">🔍</span>
+                <span>200-point inspection</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-lg">🛡️</span>
+                <span>Up to 12-month warranty</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-lg">↩️</span>
+                <span>14-day returns</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-lg">📦</span>
+                <span>Free delivery</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-lg">🌱</span>
+                <span>+50 Green Credits</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Marketplace Content -->
+<div class="container mx-auto px-4 py-8">
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3 overflow-x-auto pb-2">
+            <a href="{{ url_for('marketplace.refurbished_home') }}"
+               class="btn btn-sm {% if not current_category %}btn-primary{% else %}btn-ghost{% endif %}">All</a>
+            {% for item in categories %}
+                {% if item.count > 0 %}
+                    <a href="?category={{ item.category.slug }}"
+                       class="btn btn-sm {% if current_category == item.category.slug %}btn-primary{% else %}btn-ghost{% endif %}">
+                        {{ item.category.icon }} {{ item.category.name }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <select class="select select-bordered select-sm" onchange="window.location.href='?sort='+this.value{% if current_category %}+'&category={{ current_category }}'{% endif %}">
+            <option value="relevance" {% if current_sort == 'relevance' %}selected{% endif %}>Relevance</option>
+            <option value="price_low" {% if current_sort == 'price_low' %}selected{% endif %}>Price: Low → High</option>
+            <option value="price_high" {% if current_sort == 'price_high' %}selected{% endif %}>Price: High → Low</option>
+            <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>Top Rated</option>
+        </select>
+    </div>
+
+    <p class="text-sm text-base-content/60 mb-6">{{ pagination.total }} certified refurbished products</p>
+
+    <!-- Product Grid -->
+    {% if products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for product in products %}
+                <!-- Enhanced Refurbished Card -->
+                <div class="card bg-base-100 shadow-md border border-success/20 hover:shadow-xl hover:border-success/40 transition-all duration-300 group">
+                    <figure class="relative overflow-hidden bg-base-200 h-56">
+                        {% if product.thumbnail %}
+                            <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center">
+                                <span class="text-5xl">📦</span>
+                            </div>
+                        {% endif %}
+                        <!-- Grade Badge -->
+                        <div class="absolute top-2 left-2">
+                            <div class="badge badge-success">♻️ Grade {{ product.grade or 'A' }}</div>
+                        </div>
+                        <!-- Savings -->
+                        {% if product.savings.percentage > 0 %}
+                            <div class="absolute top-2 right-2">
+                                <div class="badge badge-error font-bold">-{{ product.savings.percentage }}%</div>
+                            </div>
+                        {% endif %}
+                        <!-- CO2 Badge -->
+                        {% if product.carbon_saved_kg %}
+                            <div class="absolute bottom-2 left-2">
+                                <div class="badge badge-sm bg-returnless-600 text-white border-0">
+                                    🌍 {{ product.carbon_saved_kg }}kg CO₂
+                                </div>
+                            </div>
+                        {% endif %}
+                    </figure>
+
+                    <div class="card-body p-4">
+                        {% if product.brand %}
+                            <p class="text-xs text-base-content/50 uppercase tracking-wide font-medium">{{ product.brand }}</p>
+                        {% endif %}
+                        <h3 class="card-title text-sm line-clamp-2 leading-tight">
+                            <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="hover:text-primary transition-colors">
+                                {{ product.name }}
+                            </a>
+                        </h3>
+
+                        <!-- Rating -->
+                        <div class="flex items-center gap-1 mt-1">
+                            <div class="rating rating-xs">
+                                {% for i in range(5) %}
+                                    <span class="{% if i < product.avg_rating|int %}text-warning{% else %}text-base-300{% endif %}">★</span>
+                                {% endfor %}
+                            </div>
+                            <span class="text-xs text-base-content/50">({{ product.total_reviews }})</span>
+                        </div>
+
+                        <!-- Price -->
+                        <div class="flex items-baseline gap-2 mt-2">
+                            <span class="text-lg font-bold text-success">₹{{ "{:,.0f}".format(product.price) }}</span>
+                            {% if product.original_price and product.original_price > product.price %}
+                                <span class="text-sm line-through text-base-content/40">₹{{ "{:,.0f}".format(product.original_price) }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Trust Info -->
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            {% if product.warranty_months %}
+                                <span class="badge badge-ghost badge-xs">🛡️ {{ product.warranty_months }}mo warranty</span>
+                            {% endif %}
+                            <span class="badge badge-ghost badge-xs">+50 🌱</span>
+                        </div>
+
+                        <!-- Free Delivery -->
+                        {% if product.free_delivery %}
+                            <p class="text-xs text-success mt-2 font-medium">FREE delivery</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+            <div class="flex justify-center mt-10">
+                <div class="join">
+                    {% if pagination.has_prev %}
+                        <a href="?page={{ pagination.page - 1 }}" class="join-item btn btn-sm">«</a>
+                    {% endif %}
+                    {% for p in range(1, pagination.pages + 1) %}
+                        <a href="?page={{ p }}" class="join-item btn btn-sm {% if p == pagination.page %}btn-active{% endif %}">{{ p }}</a>
+                    {% endfor %}
+                    {% if pagination.has_next %}
+                        <a href="?page={{ pagination.page + 1 }}" class="join-item btn btn-sm">»</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-20">
+            <div class="text-6xl mb-4">♻️</div>
+            <h3 class="text-xl font-semibold">No refurbished products in this category</h3>
+            <p class="text-base-content/60 mt-2">Check back soon or browse all categories.</p>
+            <a href="{{ url_for('marketplace.refurbished_home') }}" class="btn btn-success btn-sm mt-4">View All Refurbished</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Why Refurbished Section -->
+<section class="bg-base-200 py-12 mt-8">
+    <div class="container mx-auto px-4">
+        <h2 class="text-2xl font-bold text-center mb-8">Why Choose Refurbished?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body items-center text-center p-4">
+                    <span class="text-3xl">💰</span>
+                    <h3 class="font-bold text-sm mt-2">Save Up to 60%</h3>
+                    <p class="text-xs text-base-content/60">Same quality, fraction of the price</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body items-center text-center p-4">
+                    <span class="text-3xl">🌍</span>
+                    <h3 class="font-bold text-sm mt-2">Reduce E-Waste</h3>
+                    <p class="text-xs text-base-content/60">Keep electronics out of landfills</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body items-center text-center p-4">
+                    <span class="text-3xl">🛡️</span>
+                    <h3 class="font-bold text-sm mt-2">Full Warranty</h3>
+                    <p class="text-xs text-base-content/60">Up to 12 months coverage</p>
+                </div>
+            </div>
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body items-center text-center p-4">
+                    <span class="text-3xl">🌱</span>
+                    <h3 class="font-bold text-sm mt-2">Earn 2.5x Credits</h3>
+                    <p class="text-xs text-base-content/60">+50 vs +20 for standard</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

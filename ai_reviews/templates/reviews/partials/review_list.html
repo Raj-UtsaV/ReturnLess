@@ -1,0 +1,113 @@
+<!-- Review List Partial (HTMX target) -->
+{% if reviews %}
+    <div class="space-y-4">
+        {% for review in reviews %}
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body p-4">
+                    <!-- Header: Rating + Title -->
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <div class="rating rating-sm">
+                                    {% for i in range(5) %}
+                                        <span class="{% if i < review.rating %}text-warning{% else %}text-base-300{% endif %}">★</span>
+                                    {% endfor %}
+                                </div>
+                                <h3 class="font-semibold text-sm">{{ review.title }}</h3>
+                            </div>
+                            <div class="flex items-center gap-2 mt-1">
+                                {% if review.verified_purchase %}
+                                    <span class="badge badge-success badge-xs">✓ Verified Purchase</span>
+                                {% endif %}
+                                {% if review.size_purchased %}
+                                    <span class="badge badge-ghost badge-xs">Size: {{ review.size_purchased }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <!-- AI Sentiment Badge -->
+                        {% if review.ai_processed %}
+                            <div class="tooltip tooltip-left" data-tip="AI Sentiment: {{ review.sentiment_label }} ({{ review.sentiment_score }})">
+                                <span class="badge badge-sm
+                                    {% if review.sentiment_label == 'positive' %}badge-success
+                                    {% elif review.sentiment_label == 'negative' %}badge-error
+                                    {% else %}badge-warning{% endif %}">
+                                    {% if review.sentiment_label == 'positive' %}😊
+                                    {% elif review.sentiment_label == 'negative' %}😞
+                                    {% else %}😐{% endif %}
+                                    {{ review.sentiment_label }}
+                                </span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Body -->
+                    <p class="text-sm mt-3 leading-relaxed text-base-content/80">{{ review.body }}</p>
+
+                    <!-- AI Topics -->
+                    {% if review.topics %}
+                        <div class="flex flex-wrap gap-1 mt-3">
+                            {% for topic in review.topics %}
+                                <span class="badge badge-ghost badge-xs">{{ topic }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Footer: Author + Helpful Votes -->
+                    <div class="flex items-center justify-between mt-4 pt-3 border-t border-base-200">
+                        <div class="flex items-center gap-2">
+                            <div class="avatar placeholder">
+                                <div class="bg-base-300 rounded-full w-6 h-6">
+                                    <span class="text-xs">{{ review.customer.first_name[0] }}</span>
+                                </div>
+                            </div>
+                            <span class="text-xs text-base-content/60">
+                                {{ review.customer.first_name }} {{ review.customer.last_name[0] }}.
+                            </span>
+                            <span class="text-xs text-base-content/40">
+                                {{ review.created_at.strftime('%b %d, %Y') if review.created_at else '' }}
+                            </span>
+                        </div>
+
+                        <!-- Helpful Votes -->
+                        {% include "reviews/partials/vote_buttons.html" %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+        <div class="flex justify-center mt-8">
+            <div class="join">
+                {% if pagination.has_prev %}
+                    <a href="?page={{ pagination.page - 1 }}&sort={{ current_sort }}" class="join-item btn btn-sm">«</a>
+                {% endif %}
+                {% for p in range(1, pagination.pages + 1) %}
+                    {% if p == pagination.page %}
+                        <button class="join-item btn btn-sm btn-active">{{ p }}</button>
+                    {% elif p <= 2 or p >= pagination.pages - 1 or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+                        <a href="?page={{ p }}&sort={{ current_sort }}" class="join-item btn btn-sm">{{ p }}</a>
+                    {% elif p == 3 %}
+                        <button class="join-item btn btn-sm btn-disabled">...</button>
+                    {% endif %}
+                {% endfor %}
+                {% if pagination.has_next %}
+                    <a href="?page={{ pagination.page + 1 }}&sort={{ current_sort }}" class="join-item btn btn-sm">»</a>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16">
+        <div class="text-6xl mb-4">💬</div>
+        <h3 class="text-xl font-semibold">No reviews yet</h3>
+        <p class="text-base-content/60 mt-2">Be the first to share your experience with this product.</p>
+        {% if can_review is defined and can_review %}
+            <a href="{{ url_for('reviews.write_review', product_id=product.id) }}" class="btn btn-primary btn-sm mt-4">
+                ✍️ Write a Review
+            </a>
+        {% endif %}
+    </div>
+{% endif %}

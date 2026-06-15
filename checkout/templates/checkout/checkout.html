@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Checkout</h1>
+
+    <form method="POST" class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="{ acknowledged: false }">
+        <!-- Shipping & Payment -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- AI Size Compatibility Warning -->
+            {% if size_warnings %}
+                <div class="card bg-warning/10 border-2 border-warning/40 shadow-md">
+                    <div class="card-body p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-2xl">🤖</span>
+                            <div>
+                                <h2 class="font-bold text-warning-content">AI Size Check — Please Verify</h2>
+                                <p class="text-xs text-base-content/70">Our AI detected size mismatches in your order</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            {% for warn in size_warnings %}
+                                <div class="flex items-center gap-3 p-3 bg-base-100 rounded-lg border border-warning/20">
+                                    <div class="w-10 h-10 rounded bg-base-200 overflow-hidden flex-shrink-0">
+                                        {% if warn.item.product.thumbnail %}
+                                            <img src="{{ warn.item.product.thumbnail }}" class="w-full h-full object-cover">
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium line-clamp-1">{{ warn.product_name }}</p>
+                                        <p class="text-xs text-base-content/60 mt-0.5">
+                                            You selected: <span class="font-bold text-error">{{ warn.selected_size }}</span>
+                                            • AI recommends: <span class="font-bold text-success">{{ warn.recommended_size }}</span>
+                                            <span class="text-xs opacity-60">({{ warn.confidence }}% confident)</span>
+                                        </p>
+                                        {% if warn.explanation %}
+                                            <p class="text-xs text-base-content/50 mt-1 italic">💡 {{ warn.explanation[:120] }}{% if warn.explanation|length > 120 %}...{% endif %}</p>
+                                        {% endif %}
+                                    </div>
+                                    <a href="{{ url_for('checkout.cart') }}" class="btn btn-warning btn-xs btn-outline">
+                                        Change
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4 p-3 bg-warning/10 rounded-lg">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" class="checkbox checkbox-warning checkbox-sm mt-0.5"
+                                       name="size_warning_acknowledged" value="true"
+                                       @change="acknowledged = $el.checked">
+                                <div>
+                                    <p class="text-sm font-medium">I've verified my size selections and want to proceed</p>
+                                    <p class="text-xs text-base-content/60 mt-0.5">
+                                        Wrong sizes may lead to returns which deduct Green Credits (-15 to -30).
+                                        Using AI recommendations reduces returns by 40%.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Smart Checkout Insights (Category-Specific) -->
+            {% if checkout_insights %}
+                <!-- Clothing Insights: Size Auto-Detection -->
+                {% if checkout_insights.clothing %}
+                    <div class="card bg-indigo-50 border border-indigo-200 shadow-sm" data-theme="light">
+                        <div class="card-body p-4">
+                            <div class="flex items-center justify-between">
+                                <h2 class="font-bold text-indigo-800 flex items-center gap-2">
+                                    👕 Size Check — Clothing Items
+                                </h2>
+                                <a href="{{ url_for('checkout.cart') }}" class="btn btn-xs btn-outline border-indigo-300 text-indigo-700 hover:bg-indigo-100">
+                                    🛒 Go to Cart
+                                </a>
+                            </div>
+                            <div class="space-y-3 mt-3">
+                                {% for insight in checkout_insights.clothing %}
+                                    <div class="flex items-start gap-3 p-3 bg-white/70 rounded-lg">
+                                        <div class="w-10 h-10 rounded bg-base-200 overflow-hidden flex-shrink-0">
+                                            {% if insight.product_thumbnail %}
+                                                <img src="{{ insight.product_thumbnail }}" class="w-full h-full object-cover">
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-indigo-900">{{ insight.product_name }}</p>
+                                            {% if insight.is_first_order %}
+                                                <div class="mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                                    <p class="text-xs text-yellow-800 font-medium">🆕 First clothing order — please confirm your size</p>
+                                                    <p class="text-xs text-yellow-700 mt-0.5">{{ insight.message }}</p>
+                                                    {% if insight.selected_size %}
+                                                        <p class="text-xs mt-1">Selected: <span class="font-bold">{{ insight.selected_size }}</span> — are you sure this is right?</p>
+                                                    {% else %}
+                                                        <p class="text-xs text-error mt-1 font-medium">⚠️ No size selected! Go to cart to pick a size.</p>
+                                                    {% endif %}
+                                                </div>
+                                            {% else %}
+                                                <div class="mt-1">
+                                                    <p class="text-xs text-indigo-700">{{ insight.message }}</p>
+                                                    {% if insight.status == 'match' %}
+                                                        <p class="text-xs text-success font-medium mt-1">✅ Size {{ insight.selected_size }} matches your history</p>
+                                                    {% elif insight.status == 'mismatch' %}
+                                                        <p class="text-xs text-warning font-medium mt-1">⚠️ You selected {{ insight.selected_size }} but usually wear {{ insight.detected_size }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Electronics/Appliances: Compatibility Checklist -->
+                {% if checkout_insights.electronics %}
+                    <div class="card bg-cyan-50 border border-cyan-200 shadow-sm" data-theme="light">
+                        <div class="card-body p-4">
+                            <div class="flex items-center justify-between">
+                                <h2 class="font-bold text-cyan-800 flex items-center gap-2">
+                                    🔌 Compatibility Check — Electronics & Appliances
+                                </h2>
+                                <a href="{{ url_for('checkout.cart') }}" class="btn btn-xs btn-outline border-cyan-300 text-cyan-700 hover:bg-cyan-100">
+                                    🛒 Go to Cart
+                                </a>
+                            </div>
+                            <p class="text-xs text-cyan-600 mt-1">AI-generated checklist based on product reviews</p>
+                            <div class="space-y-4 mt-3">
+                                {% for insight in checkout_insights.electronics %}
+                                    <div class="p-3 bg-white/70 rounded-lg">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            {% if insight.product_thumbnail %}
+                                                <img src="{{ insight.product_thumbnail }}" class="w-8 h-8 rounded object-cover">
+                                            {% endif %}
+                                            <p class="text-sm font-medium text-cyan-900">{{ insight.product_name }}</p>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            {% for check in insight.checklist %}
+                                                <label class="flex items-center gap-2 cursor-pointer">
+                                                    <input type="checkbox" class="checkbox checkbox-xs checkbox-info">
+                                                    <span class="text-xs text-cyan-800">{{ check.icon }} {{ check.item }}</span>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Other Products: Purchase Tips -->
+                {% if checkout_insights.other %}
+                    <div class="card bg-emerald-50 border border-emerald-200 shadow-sm" data-theme="light">
+                        <div class="card-body p-4">
+                            <div class="flex items-center justify-between">
+                                <h2 class="font-bold text-emerald-800 flex items-center gap-2">
+                                    💡 Purchase Tips
+                                </h2>
+                                <a href="{{ url_for('checkout.cart') }}" class="btn btn-xs btn-outline border-emerald-300 text-emerald-700 hover:bg-emerald-100">
+                                    🛒 Go to Cart
+                                </a>
+                            </div>
+                            <div class="space-y-3 mt-3">
+                                {% for insight in checkout_insights.other %}
+                                    <div class="p-3 bg-white/70 rounded-lg">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            {% if insight.product_thumbnail %}
+                                                <img src="{{ insight.product_thumbnail }}" class="w-8 h-8 rounded object-cover">
+                                            {% endif %}
+                                            <p class="text-sm font-medium text-emerald-900">{{ insight.product_name }}</p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            {% for tip in insight.tips %}
+                                                <p class="text-xs text-emerald-700">{{ tip.icon }} {{ tip.text }}</p>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Shipping Address -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body">
+                    <h2 class="font-bold text-lg mb-4">📍 Shipping Address</h2>
+
+                    {% if addresses %}
+                        <div class="alert alert-info mb-4">
+                            <span class="text-sm">💡 Select a saved address or enter a new one below.</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4" x-data="{ selected: '' }">
+                            {% for addr in addresses %}
+                                <label class="card bg-base-200/50 border border-base-200 cursor-pointer p-3 hover:border-primary transition"
+                                       :class="{ 'border-primary bg-primary/5': selected === '{{ addr.id }}' }">
+                                    <input type="radio" name="saved_address" value="{{ addr.id }}"
+                                           class="hidden" @click="selected = '{{ addr.id }}'
+                                           ; $refs.name.value = '{{ addr.full_name }}'
+                                           ; $refs.address.value = '{{ addr.address_line1 }}'
+                                           ; $refs.city.value = '{{ addr.city }}'
+                                           ; $refs.state.value = '{{ addr.state }}'
+                                           ; $refs.postal.value = '{{ addr.postal_code }}'
+                                           ; $refs.phone.value = '{{ addr.phone }}'">
+                                    <p class="font-medium text-sm">{{ addr.full_name }}</p>
+                                    <p class="text-xs text-base-content/60">{{ addr.address_line1 }}, {{ addr.city }}</p>
+                                    <span class="badge badge-ghost badge-xs mt-1">{{ addr.label }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-ref="formFields">
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text">Full Name</span></label>
+                            <input type="text" name="shipping_name" x-ref="name"
+                                   value="{{ current_user.full_name }}"
+                                   class="input input-bordered" required>
+                        </div>
+                        <div class="form-control md:col-span-2">
+                            <label class="label"><span class="label-text">Address</span></label>
+                            <input type="text" name="shipping_address" x-ref="address"
+                                   placeholder="Street address, apartment, etc."
+                                   class="input input-bordered" required>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">City</span></label>
+                            <input type="text" name="shipping_city" x-ref="city"
+                                   class="input input-bordered" required>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">State</span></label>
+                            <input type="text" name="shipping_state" x-ref="state"
+                                   class="input input-bordered" required>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Postal Code</span></label>
+                            <input type="text" name="shipping_postal" x-ref="postal"
+                                   class="input input-bordered" required>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Phone</span></label>
+                            <input type="tel" name="shipping_phone" x-ref="phone"
+                                   value="{{ current_user.phone or '' }}"
+                                   class="input input-bordered" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping Method -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body">
+                    <h2 class="font-bold text-lg mb-4">🚚 Shipping Method</h2>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 p-3 border border-base-200 rounded-lg cursor-pointer hover:border-primary transition">
+                            <input type="radio" name="shipping_method" value="standard" class="radio radio-primary radio-sm" checked>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Standard Delivery</p>
+                                <p class="text-xs text-base-content/60">3-7 business days</p>
+                            </div>
+                            <span class="font-medium text-sm">
+                                {% if cart.delivery_fee == 0 %}FREE{% else %}₹{{ cart.delivery_fee }}{% endif %}
+                            </span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 border border-success/30 bg-success/5 rounded-lg cursor-pointer hover:border-success transition">
+                            <input type="checkbox" name="eco_shipping" class="checkbox checkbox-success checkbox-sm">
+                            <div class="flex-1">
+                                <p class="font-medium text-sm text-success">🌿 Eco Shipping</p>
+                                <p class="text-xs text-base-content/60">5-10 business days • Consolidated delivery • +10 Green Credits</p>
+                            </div>
+                            <span class="font-medium text-sm text-success">FREE</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment (Mock) -->
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body">
+                    <h2 class="font-bold text-lg mb-4">💳 Payment</h2>
+                    <div class="alert bg-blue-50 border border-blue-200 text-blue-800 mb-4" data-theme="light">
+                        <span class="text-sm">🔒 This is a demo. No real payment will be processed.</span>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 p-3 border border-base-200 rounded-lg cursor-pointer hover:border-primary transition">
+                            <input type="radio" name="payment_method" value="mock_card" class="radio radio-primary radio-sm" checked>
+                            <span class="text-sm font-medium">💳 Credit/Debit Card (Demo)</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 border border-base-200 rounded-lg cursor-pointer hover:border-primary transition">
+                            <input type="radio" name="payment_method" value="mock_upi" class="radio radio-primary radio-sm">
+                            <span class="text-sm font-medium">📱 UPI (Demo)</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 border border-base-200 rounded-lg cursor-pointer hover:border-primary transition">
+                            <input type="radio" name="payment_method" value="mock_cod" class="radio radio-primary radio-sm">
+                            <span class="text-sm font-medium">💰 Cash on Delivery (Demo)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+            <div class="card bg-base-100 border border-base-200 shadow-md sticky top-24">
+                <div class="card-body">
+                    <h3 class="font-bold text-lg">Order Summary</h3>
+
+                    <!-- Items -->
+                    <div class="space-y-3 mt-4 max-h-64 overflow-y-auto">
+                        {% for item in cart_items %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-base-200">
+                                    {% if item.product.thumbnail %}
+                                        <img src="{{ item.product.thumbnail }}" class="w-full h-full object-cover">
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-medium line-clamp-1">{{ item.product.name }}</p>
+                                    <p class="text-xs text-base-content/50">Qty: {{ item.quantity }}{% if item.size %} • Size: {{ item.size }}{% endif %}</p>
+                                </div>
+                                <p class="text-sm font-medium">₹{{ "{:,.0f}".format(item.subtotal) }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span>Subtotal</span>
+                            <span>₹{{ "{:,.0f}".format(cart.subtotal) }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span>Delivery</span>
+                            {% if cart.delivery_fee == 0 %}
+                                <span class="text-success">FREE</span>
+                            {% else %}
+                                <span>₹{{ cart.delivery_fee }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex justify-between font-bold text-lg pt-2 border-t border-base-200">
+                            <span>Total</span>
+                            <span>₹{{ "{:,.0f}".format(cart.total) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Green Credits -->
+                    <div class="bg-gradient-to-r from-returnless-500 to-emerald-400 rounded-lg p-3 mt-4 text-white">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm">🌱 You'll earn</span>
+                            <span class="font-bold">+{{ cart.green_credits_earn }} Credits</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full btn-lg mt-4"
+                            {% if size_warnings %}
+                            :disabled="!acknowledged"
+                            :class="{ 'btn-disabled opacity-50': !acknowledged }"
+                            {% endif %}>
+                        {% if size_warnings %}
+                            <span x-show="!acknowledged">⚠️ Verify Sizes First</span>
+                            <span x-show="acknowledged" x-cloak>Place Order</span>
+                        {% else %}
+                            Place Order
+                        {% endif %}
+                    </button>
+
+                    {% if size_warnings %}
+                        <p class="text-xs text-center text-warning mt-1" x-show="!acknowledged">
+                            Please acknowledge the size warnings above to proceed
+                        </p>
+                    {% endif %}
+
+                    <p class="text-xs text-center text-base-content/50 mt-2">
+                        By placing your order, you agree to ReturnLess's terms and conditions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

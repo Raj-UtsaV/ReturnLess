@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero min-h-[60vh] bg-gradient-to-br from-returnless-50 via-base-100 to-emerald-50">
+    <div class="hero-content flex-col lg:flex-row-reverse gap-12 container mx-auto px-4 py-16">
+        <div class="text-center lg:text-left max-w-xl">
+            <div class="badge badge-success badge-lg mb-4">🌍 AI-Powered Sustainable Commerce</div>
+            <h1 class="text-5xl font-bold leading-tight">
+                Shop Smart.
+                <span class="bg-gradient-to-r from-returnless-600 to-returnless-400 bg-clip-text text-transparent">
+                    Return Less.
+                </span>
+                <br>Save the Planet.
+            </h1>
+            <p class="py-6 text-lg opacity-80">
+                ReturnLess prevents unnecessary returns with intelligent size recommendations,
+                and gives returned products a second life through our certified refurbished marketplace.
+            </p>
+            <div class="flex flex-wrap gap-3 justify-center lg:justify-start">
+                <a href="{{ url_for('products.catalog') }}" class="btn btn-primary btn-lg">
+                    Browse Products
+                </a>
+                <a href="{{ url_for('marketplace.refurbished_home') }}" class="btn btn-success btn-lg btn-outline">
+                    ♻️ Shop Refurbished
+                </a>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4 max-w-md">
+            <!-- Impact Stats -->
+            <div class="stat bg-base-100 rounded-2xl shadow-md border border-base-200 p-4">
+                <div class="stat-title text-xs">Returns Prevented</div>
+                <div class="stat-value text-returnless-600 text-2xl">12,847</div>
+                <div class="stat-desc text-success">↗ AI-powered</div>
+            </div>
+            <div class="stat bg-base-100 rounded-2xl shadow-md border border-base-200 p-4">
+                <div class="stat-title text-xs">CO₂ Saved</div>
+                <div class="stat-value text-returnless-600 text-2xl">48.2T</div>
+                <div class="stat-desc text-success">tonnes</div>
+            </div>
+            <div class="stat bg-base-100 rounded-2xl shadow-md border border-base-200 p-4">
+                <div class="stat-title text-xs">Products Refurbished</div>
+                <div class="stat-value text-returnless-600 text-2xl">5,234</div>
+                <div class="stat-desc text-success">second life ♻️</div>
+            </div>
+            <div class="stat bg-base-100 rounded-2xl shadow-md border border-base-200 p-4">
+                <div class="stat-title text-xs">Green Credits Earned</div>
+                <div class="stat-value text-returnless-600 text-2xl">1.2M</div>
+                <div class="stat-desc text-success">by community</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="container mx-auto px-4 py-12">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-3xl font-bold">Featured Products</h2>
+            <p class="text-base-content/60 mt-1">Handpicked for you</p>
+        </div>
+        <a href="{{ url_for('products.catalog') }}" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+
+    {% if featured_products %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for product in featured_products %}
+                {% include "products/partials/product_card.html" %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-16">
+            <div class="text-6xl mb-4">📦</div>
+            <h3 class="text-xl font-semibold">No products yet</h3>
+            <p class="text-base-content/60 mt-2">Check back soon for amazing products.</p>
+        </div>
+    {% endif %}
+</section>
+
+<!-- Refurbished Section -->
+{% if refurbished_products %}
+<section class="bg-gradient-to-r from-returnless-50 to-emerald-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <div class="badge badge-success mb-2">♻️ Certified Refurbished</div>
+                <h2 class="text-3xl font-bold">Give Products a Second Life</h2>
+                <p class="text-base-content/60 mt-1">Same quality. Lower price. Better for the planet.</p>
+            </div>
+            <a href="{{ url_for('marketplace.refurbished_home') }}" class="btn btn-success btn-sm btn-outline">Shop All →</a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for product in refurbished_products %}
+                {% include "products/partials/product_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- How It Works -->
+<section class="container mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-center mb-12">How ReturnLess Works</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="card bg-base-100 shadow-md border border-base-200">
+            <div class="card-body items-center text-center">
+                <div class="text-4xl mb-2">🤖</div>
+                <h3 class="card-title">AI Size Recommendations</h3>
+                <p class="opacity-70">Our AI analyzes your purchase history to recommend the perfect size, reducing unnecessary returns by 40%.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-md border border-base-200">
+            <div class="card-body items-center text-center">
+                <div class="text-4xl mb-2">🌱</div>
+                <h3 class="card-title">Earn Green Credits</h3>
+                <p class="opacity-70">Every purchase earns credits. Refurbished products earn extra. Climb tiers from Silver to Green Hero.</p>
+            </div>
+        </div>
+        <div class="card bg-base-100 shadow-md border border-base-200">
+            <div class="card-body items-center text-center">
+                <div class="text-4xl mb-2">♻️</div>
+                <h3 class="card-title">Certified Refurbished</h3>
+                <p class="opacity-70">Returned items are graded, refurbished, and given a second life with full warranty.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Green Credits CTA -->
+<section class="container mx-auto px-4 pb-16">
+    <div class="card bg-gradient-to-r from-returnless-600 to-emerald-500 text-white shadow-xl">
+        <div class="card-body flex-col lg:flex-row items-center justify-between gap-6 py-8">
+            <div>
+                <h3 class="text-2xl font-bold">Start Earning Green Credits Today</h3>
+                <p class="opacity-90 mt-1">Join thousands of eco-conscious shoppers. +20 credits per purchase, +50 for refurbished.</p>
+            </div>
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('customers.register') }}" class="btn btn-white btn-lg">Create Free Account</a>
+            {% else %}
+                <a href="{{ url_for('products.catalog') }}" class="btn btn-white btn-lg">Start Shopping</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

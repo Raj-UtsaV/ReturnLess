@@ -1,0 +1,87 @@
+<!-- Product Card Component -->
+<div class="card bg-base-100 shadow-md border border-base-200 hover:shadow-xl transition-all duration-300 group">
+    <figure class="relative overflow-hidden bg-base-200 h-56">
+        {% if product.thumbnail %}
+            <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
+        {% else %}
+            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-base-200 to-base-300">
+                <span class="text-5xl">📦</span>
+            </div>
+        {% endif %}
+
+        <!-- Badges -->
+        <div class="absolute top-2 left-2 flex flex-col gap-1">
+            {% if product.is_refurbished %}
+                <div class="badge badge-success badge-sm">♻️ Refurbished</div>
+            {% endif %}
+            {% if product.savings.percentage > 0 %}
+                <div class="badge badge-error badge-sm">-{{ product.savings.percentage }}%</div>
+            {% endif %}
+            {% if product.eco_friendly %}
+                <div class="badge badge-info badge-sm">🌿 Eco</div>
+            {% endif %}
+        </div>
+
+        <!-- Green Credits Badge -->
+        <div class="absolute top-2 right-2">
+            <div class="badge badge-success badge-outline badge-sm bg-base-100/90">
+                +{{ product.green_credits_earn }} 🌱
+            </div>
+        </div>
+    </figure>
+
+    <div class="card-body p-4">
+        <!-- Brand -->
+        {% if product.brand %}
+            <p class="text-xs text-base-content/50 uppercase tracking-wide font-medium">{{ product.brand }}</p>
+        {% endif %}
+
+        <!-- Name -->
+        <h3 class="card-title text-sm line-clamp-2 leading-tight">
+            <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="hover:text-primary transition-colors">
+                {{ product.name }}
+            </a>
+        </h3>
+
+        <!-- Rating -->
+        <div class="flex items-center gap-1 mt-1">
+            <div class="rating rating-xs">
+                {% for i in range(5) %}
+                    <span class="{% if i < product.avg_rating|int %}text-warning{% else %}text-base-300{% endif %}">★</span>
+                {% endfor %}
+            </div>
+            <span class="text-xs text-base-content/50">({{ product.total_reviews }})</span>
+        </div>
+
+        <!-- Price -->
+        <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-lg font-bold">₹{{ "{:,.0f}".format(product.price) }}</span>
+            {% if product.original_price and product.original_price > product.price %}
+                <span class="text-sm line-through text-base-content/40">₹{{ "{:,.0f}".format(product.original_price) }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Refurbished Grade -->
+        {% if product.is_refurbished and product.grade %}
+            <div class="flex items-center gap-2 mt-1">
+                <div class="badge badge-ghost badge-sm">Grade {{ product.grade }}</div>
+                {% if product.warranty_months %}
+                    <span class="text-xs text-base-content/50">{{ product.warranty_months }}mo warranty</span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Delivery Info -->
+        <div class="text-xs text-base-content/50 mt-2">
+            {% if product.free_delivery %}
+                <span class="text-success font-medium">FREE delivery</span> •
+            {% endif %}
+            {{ product.delivery_estimate }}
+        </div>
+
+        <!-- Stock Status -->
+        {% if not product.in_stock %}
+            <div class="badge badge-error badge-outline badge-sm mt-1">Out of Stock</div>
+        {% endif %}
+    </div>
+</div>

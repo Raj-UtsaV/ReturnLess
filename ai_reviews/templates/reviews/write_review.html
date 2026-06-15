@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Write Review - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <!-- Breadcrumb -->
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{{ url_for('main.index') }}">Home</a></li>
+            <li><a href="{{ url_for('products.product_detail', slug=product.slug) }}">{{ product.name[:30] }}...</a></li>
+            <li class="font-medium">Write Review</li>
+        </ul>
+    </div>
+
+    <!-- Product Context -->
+    <div class="flex items-center gap-4 mb-8 p-4 bg-base-200/50 rounded-xl border border-base-200">
+        {% if product.thumbnail %}
+            <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-16 h-16 rounded-lg object-cover">
+        {% else %}
+            <div class="w-16 h-16 bg-base-300 rounded-lg flex items-center justify-center text-2xl">📦</div>
+        {% endif %}
+        <div>
+            <h2 class="font-semibold">{{ product.name }}</h2>
+            <p class="text-sm text-base-content/60">{{ product.brand }}</p>
+        </div>
+    </div>
+
+    <!-- Review Form -->
+    <div class="card bg-base-100 shadow-md border border-base-200">
+        <div class="card-body">
+            <h1 class="text-xl font-bold mb-4">✍️ Write Your Review</h1>
+
+            <form method="POST" class="space-y-6" x-data="{ rating: 5 }">
+                <!-- Star Rating -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Overall Rating</span>
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <div class="rating rating-lg">
+                            {% for i in range(1, 6) %}
+                                <input type="radio" name="rating" value="{{ i }}"
+                                       class="mask mask-star-2 bg-warning"
+                                       {% if i == 5 %}checked{% endif %}
+                                       @click="rating = {{ i }}">
+                            {% endfor %}
+                        </div>
+                        <span class="text-sm text-base-content/60" x-text="
+                            rating === 5 ? 'Excellent' :
+                            rating === 4 ? 'Good' :
+                            rating === 3 ? 'Average' :
+                            rating === 2 ? 'Below Average' : 'Poor'
+                        "></span>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Review Title</span>
+                    </label>
+                    <input type="text" name="title"
+                           placeholder="Sum up your experience in a headline..."
+                           class="input input-bordered w-full"
+                           required maxlength="200">
+                </div>
+
+                <!-- Body -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-medium">Your Review</span>
+                    </label>
+                    <textarea name="body"
+                              placeholder="What did you like or dislike? How does the product perform? Would you recommend it?..."
+                              class="textarea textarea-bordered w-full h-32"
+                              required minlength="20"></textarea>
+                    <label class="label">
+                        <span class="label-text-alt text-base-content/50">Minimum 20 characters. Be honest and helpful to other shoppers.</span>
+                    </label>
+                </div>
+
+                <!-- Size (if applicable) -->
+                {% if product.available_sizes %}
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Size Purchased (optional)</span>
+                        </label>
+                        <select name="size_purchased" class="select select-bordered w-full max-w-xs">
+                            <option value="">— Select size —</option>
+                            {% for size in product.available_sizes %}
+                                <option value="{{ size }}">{{ size }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+
+                <!-- AI Notice -->
+                <div class="alert bg-blue-50 border border-blue-200 text-blue-800" data-theme="light">
+                    <div>
+                        <span class="text-lg">🤖</span>
+                        <div>
+                            <p class="text-sm font-medium">AI-Powered Analysis</p>
+                            <p class="text-xs opacity-80">Your review will be analyzed for sentiment, key topics, and insights to help other shoppers. All analysis includes explanations.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="flex gap-3">
+                    <button type="submit" class="btn btn-primary flex-1">
+                        Submit Review
+                    </button>
+                    <a href="{{ url_for('products.product_detail', slug=product.slug) }}" class="btn btn-ghost">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

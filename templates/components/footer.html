@@ -1,0 +1,44 @@
+<!-- Footer -->
+<footer class="footer p-10 bg-base-200 text-base-content mt-16 border-t border-base-300">
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+        <aside>
+            <span class="text-xl font-bold flex items-center gap-2">
+                ♻️ <span class="bg-gradient-to-r from-returnless-600 to-returnless-400 bg-clip-text text-transparent">ReturnLess</span>
+            </span>
+            <p class="mt-2 text-sm opacity-70">
+                Reducing returns. Building a circular economy.
+                <br>Powered by AI for a sustainable future.
+            </p>
+            <div class="flex gap-2 mt-3">
+                <div class="badge badge-success badge-outline">🌍 Carbon Neutral</div>
+                <div class="badge badge-info badge-outline">🤖 AI Powered</div>
+            </div>
+        </aside>
+        <nav>
+            <h6 class="footer-title">Shop</h6>
+            <a href="{{ url_for('products.catalog') }}" class="link link-hover">All Products</a>
+            <a href="{{ url_for('products.catalog', type='refurbished') }}" class="link link-hover">Refurbished</a>
+            <a class="link link-hover">Deals</a>
+            <a class="link link-hover">New Arrivals</a>
+        </nav>
+        <nav>
+            <h6 class="footer-title">Sustainability</h6>
+            <a class="link link-hover">Green Credits</a>
+            <a class="link link-hover">Our Impact</a>
+            <a class="link link-hover">Circular Economy</a>
+            <a class="link link-hover">Carbon Offset</a>
+        </nav>
+        <nav>
+            <h6 class="footer-title">Support</h6>
+            <a class="link link-hover">Help Center</a>
+            <a class="link link-hover">Returns</a>
+            <a class="link link-hover">Contact Us</a>
+            <a class="link link-hover">Size Guide</a>
+        </nav>
+    </div>
+</footer>
+<footer class="footer footer-center p-4 bg-base-300 text-base-content">
+    <aside>
+        <p>© 2026 ReturnLess — Sustainable Commerce Platform. Built with 💚</p>
+    </aside>
+</footer>

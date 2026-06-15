@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Cancel Order{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="breadcrumbs text-sm mb-6">
+        <ul>
+            <li><a href="{{ url_for('checkout.order_history') }}">Orders</a></li>
+            <li><a href="{{ url_for('checkout.order_confirmation', order_number=order.order_number) }}">{{ order.order_number }}</a></li>
+            <li class="font-medium">Cancel</li>
+        </ul>
+    </div>
+
+    <h1 class="text-2xl font-bold mb-6">Cancel Order</h1>
+
+    <!-- Warning for shipped orders -->
+    {% if cancel_info.penalty > 0 %}
+        <div class="alert alert-warning mb-6">
+            <div>
+                <span class="text-xl">⚠️</span>
+                <div>
+                    <p class="font-bold">This order has already been shipped</p>
+                    <p class="text-sm">{{ cancel_info.explanation }}</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Order Summary -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm mb-6">
+        <div class="card-body p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-bold">{{ order.order_number }}</p>
+                    <p class="text-sm text-base-content/60">
+                        {{ order.item_count }} item{{ 's' if order.item_count > 1 else '' }}
+                        • ₹{{ "{:,.0f}".format(order.total) }}
+                    </p>
+                </div>
+                <span class="badge badge-{{ 'warning' if order.status == 'shipped' else 'info' }} badge-sm">
+                    {{ order.status | title }}
+                </span>
+            </div>
+
+            <!-- Items -->
+            <div class="mt-4 space-y-2">
+                {% for item in order.items %}
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded bg-base-200 flex-shrink-0 overflow-hidden">
+                            {% if item.product_thumbnail %}
+                                <img src="{{ item.product_thumbnail }}" class="w-full h-full object-cover">
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium line-clamp-1">{{ item.product_name }}</p>
+                            <p class="text-xs text-base-content/50">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <span class="text-sm font-medium">₹{{ "{:,.0f}".format(item.subtotal) }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Form -->
+    <div class="card bg-base-100 border border-base-200 shadow-sm">
+        <div class="card-body">
+            <h2 class="font-bold text-lg mb-4">Why are you cancelling?</h2>
+
+            <form method="POST">
+                <div class="space-y-3">
+                    {% for key, label in reasons.items() %}
+                        <label class="flex items-center gap-3 p-3 border border-base-200 rounded-lg cursor-pointer hover:border-primary transition">
+                            <input type="radio" name="reason" value="{{ key }}" class="radio radio-primary radio-sm"
+                                   {% if loop.first %}checked{% endif %}>
+                            <span class="text-sm">{{ label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <div class="form-control mt-4">
+                    <label class="label"><span class="label-text">Additional details (optional)</span></label>
+                    <textarea name="reason_detail" class="textarea textarea-bordered" rows="3"
+                              placeholder="Tell us more about why you're cancelling..."></textarea>
+                </div>
+
+                <!-- Credit Impact Summary -->
+                <div class="bg-base-200/50 rounded-lg p-4 mt-6">
+                    <h3 class="font-medium text-sm mb-2">💰 Refund & Credit Impact</h3>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between">
+                            <span>Refund Amount</span>
+                            <span class="font-medium text-success">₹{{ "{:,.0f}".format(order.total) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Credits originally earned</span>
+                            <span class="text-base-content/60">-{{ order.credits_earned }} credits</span>
+                        </div>
+                        {% if cancel_info.penalty > 0 %}
+                            <div class="flex justify-between text-error">
+                                <span>Shipped cancellation penalty</span>
+                                <span class="font-medium">-{{ cancel_info.penalty }} credits</span>
+                            </div>
+                        {% endif %}
+                        <div class="divider my-1"></div>
+                        <div class="flex justify-between font-bold">
+                            <span>Total credits deducted</span>
+                            <span class="text-error">-{{ order.credits_earned + cancel_info.penalty }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="submit" class="btn btn-error flex-1">
+                        {% if cancel_info.penalty > 0 %}
+                            Cancel Order (-{{ cancel_info.penalty }} Credits)
+                        {% else %}
+                            Cancel Order
+                        {% endif %}
+                    </button>
+                    <a href="{{ url_for('checkout.order_confirmation', order_number=order.order_number) }}" class="btn btn-ghost">
+                        Keep Order
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

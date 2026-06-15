@@ -1,0 +1,26 @@
+<!-- Penalty Preview (HTMX swappable) -->
+<div class="bg-base-200/50 rounded-lg p-4">
+    <h3 class="font-medium text-sm mb-2">💰 Credit Impact</h3>
+    {% if penalty.is_defective %}
+        <div class="flex items-center gap-2 text-success">
+            <span class="text-lg">✅</span>
+            <div>
+                <p class="text-sm font-medium">No credit penalty</p>
+                <p class="text-xs text-base-content/60">{{ penalty.explanation }}</p>
+            </div>
+        </div>
+    {% else %}
+        <div class="flex items-center gap-2 text-warning">
+            <span class="text-lg">⚠️</span>
+            <div>
+                <p class="text-sm font-medium text-error">-{{ penalty.penalty }} Green Credits</p>
+                <p class="text-xs text-base-content/60">{{ penalty.explanation }}</p>
+            </div>
+        </div>
+        {% if penalty.is_serial %}
+            <div class="alert alert-error mt-2 p-2">
+                <span class="text-xs">🔄 You've been flagged as a frequent returner. Consider using our AI size recommendations to find the right fit!</span>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

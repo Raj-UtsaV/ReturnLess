@@ -1,0 +1,92 @@
+<!-- Sidebar Filters -->
+<form method="GET" action="{{ url_for('products.catalog') }}">
+    <!-- Category Filter -->
+    <div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg">
+        <input type="checkbox" checked>
+        <div class="collapse-title font-medium text-sm">Categories</div>
+        <div class="collapse-content">
+            <ul class="menu menu-xs p-0">
+                <li>
+                    <a href="{{ url_for('products.catalog') }}"
+                       class="{% if not current_filters.category %}font-bold text-primary{% endif %}">
+                        All Categories
+                    </a>
+                </li>
+                {% for item in categories %}
+                    <li>
+                        <a href="{{ url_for('products.catalog', category=item.category.slug) }}"
+                           class="{% if current_filters.category == item.category.slug %}font-bold text-primary{% endif %}">
+                            {{ item.category.name }}
+                            <span class="badge badge-xs badge-ghost">{{ item.count }}</span>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Product Type Filter -->
+    <div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg mt-3">
+        <input type="checkbox" checked>
+        <div class="collapse-title font-medium text-sm">Product Type</div>
+        <div class="collapse-content">
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-2 py-1">
+                    <input type="radio" name="type" value=""
+                           class="radio radio-xs radio-primary"
+                           {% if not current_filters.type %}checked{% endif %}>
+                    <span class="label-text text-sm">All</span>
+                </label>
+                <label class="label cursor-pointer justify-start gap-2 py-1">
+                    <input type="radio" name="type" value="standard"
+                           class="radio radio-xs radio-primary"
+                           {% if current_filters.type == 'standard' %}checked{% endif %}>
+                    <span class="label-text text-sm">Standard</span>
+                </label>
+                <label class="label cursor-pointer justify-start gap-2 py-1">
+                    <input type="radio" name="type" value="refurbished"
+                           class="radio radio-xs radio-success"
+                           {% if current_filters.type == 'refurbished' %}checked{% endif %}>
+                    <span class="label-text text-sm">♻️ Refurbished</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Brand Filter -->
+    <div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg mt-3">
+        <input type="checkbox" checked>
+        <div class="collapse-title font-medium text-sm">Brands</div>
+        <div class="collapse-content max-h-48 overflow-y-auto">
+            <ul class="menu menu-xs p-0">
+                {% for brand in brands %}
+                    <li>
+                        <a href="{{ url_for('products.catalog', brand=brand) }}"
+                           class="{% if current_filters.brand == brand %}font-bold text-primary{% endif %}">
+                            {{ brand }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Price Range -->
+    <div class="collapse collapse-arrow bg-base-100 border border-base-200 rounded-lg mt-3">
+        <input type="checkbox" checked>
+        <div class="collapse-title font-medium text-sm">Price Range</div>
+        <div class="collapse-content" x-data="{ min: {{ current_filters.min_price or price_range.min }}, max: {{ current_filters.max_price or price_range.max }} }">
+            <div class="flex items-center gap-2 mt-2">
+                <input type="number" name="min_price" class="input input-bordered input-xs w-20" placeholder="Min" x-model="min">
+                <span class="text-xs">to</span>
+                <input type="number" name="max_price" class="input input-bordered input-xs w-20" placeholder="Max" x-model="max">
+            </div>
+            <button type="submit" class="btn btn-primary btn-xs mt-2 w-full">Apply</button>
+        </div>
+    </div>
+
+    <!-- Clear Filters -->
+    <a href="{{ url_for('products.catalog') }}" class="btn btn-ghost btn-sm w-full mt-4">
+        Clear All Filters
+    </a>
+</form>

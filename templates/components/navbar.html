@@ -1,0 +1,105 @@
+<!-- Main Navigation -->
+<nav class="navbar bg-base-100 shadow-sm border-b border-base-200 sticky top-0 z-50">
+    <div class="container mx-auto px-4">
+        <!-- Logo & Brand -->
+        <div class="flex-1">
+            <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 text-xl font-bold">
+                <span class="text-2xl">♻️</span>
+                <span class="bg-gradient-to-r from-returnless-600 to-returnless-400 bg-clip-text text-transparent">
+                    ReturnLess
+                </span>
+            </a>
+        </div>
+
+        <!-- Search Bar (Desktop) -->
+        <div class="flex-none hidden lg:flex mx-4 flex-1 max-w-xl">
+            <div class="form-control w-full" x-data="{ open: false, results: [] }">
+                <div class="input-group w-full relative">
+                    <input
+                        type="search"
+                        placeholder="Search products..."
+                        class="input input-bordered w-full"
+                        hx-get="{{ url_for('products.api_search') }}"
+                        hx-trigger="input changed delay:300ms, search"
+                        hx-target="#search-results"
+                        name="q"
+                        @focus="open = true"
+                        @click.outside="open = false"
+                        autocomplete="off"
+                    >
+                </div>
+                <div id="search-results"
+                     class="absolute top-full mt-1 w-full bg-base-100 rounded-lg shadow-xl border border-base-200 z-50 hidden">
+                </div>
+            </div>
+        </div>
+
+        <!-- Right side actions -->
+        <div class="flex-none flex items-center gap-2">
+            <!-- Dark Mode Toggle -->
+            <button class="btn btn-ghost btn-circle" @click="darkMode = !darkMode">
+                <span x-show="!darkMode">🌙</span>
+                <span x-show="darkMode">☀️</span>
+            </button>
+
+            {% if current_user.is_authenticated %}
+                <!-- Cart Badge -->
+                <div id="cart-badge-container"
+                     hx-get="{{ url_for('checkout.cart_count') }}"
+                     hx-trigger="load"
+                     hx-swap="innerHTML">
+                    <a href="{{ url_for('checkout.cart') }}" class="btn btn-ghost btn-circle">🛒</a>
+                </div>
+
+                <!-- Green Credits Badge -->
+                <div class="badge badge-success gap-1 p-3">
+                    🌱 {{ current_user.green_credits }} credits
+                </div>
+
+                <!-- User Menu -->
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                        <div class="bg-returnless-500 text-white rounded-full w-10">
+                            <span>{{ current_user.first_name[0] }}{{ current_user.last_name[0] }}</span>
+                        </div>
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-50 p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200">
+                        <li class="menu-title">
+                            <span>{{ current_user.full_name }}</span>
+                        </li>
+                        <li><a href="{{ url_for('customers.profile') }}">👤 Profile</a></li>
+                        <li><a href="{{ url_for('checkout.order_history') }}">📦 Orders</a></li>
+                        <li><a href="{{ url_for('returns.return_history') }}">🔄 Returns</a></li>
+                        <li><a href="{{ url_for('credits.dashboard') }}">🌱 Green Credits</a></li>
+                        {% if current_user.is_admin %}
+                            <li><a href="{{ url_for('admin.dashboard') }}">🛠️ Admin Dashboard</a></li>
+                            <li><a href="{{ url_for('admin.admin_returns') }}">🔄 Returns Tracking</a></li>
+                            <li><a href="{{ url_for('grading.inspections_list') }}">🔍 Quality Grading</a></li>
+                            <li><a href="{{ url_for('routing.routing_dashboard') }}">🏭 Warehouse Routing</a></li>
+                        {% endif %}
+                        <div class="divider my-0"></div>
+                        <li><a href="{{ url_for('customers.logout') }}">🚪 Logout</a></li>
+                    </ul>
+                </div>
+            {% else %}
+                <a href="{{ url_for('customers.login') }}" class="btn btn-ghost btn-sm">Sign In</a>
+                <a href="{{ url_for('customers.register') }}" class="btn btn-primary btn-sm">Join ReturnLess</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- Category Bar -->
+<div class="bg-base-200 border-b border-base-300 hidden lg:block">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center gap-4 py-2 text-sm overflow-x-auto">
+            <a href="{{ url_for('products.catalog') }}" class="link link-hover whitespace-nowrap font-medium">All Products</a>
+            <a href="{{ url_for('marketplace.refurbished_home') }}" class="link link-hover whitespace-nowrap text-success font-medium">♻️ Refurbished</a>
+            <a href="{{ url_for('products.catalog', category='electronics') }}" class="link link-hover whitespace-nowrap">Electronics</a>
+            <a href="{{ url_for('products.catalog', category='clothing') }}" class="link link-hover whitespace-nowrap">Clothing</a>
+            <a href="{{ url_for('products.catalog', category='home-kitchen') }}" class="link link-hover whitespace-nowrap">Home & Kitchen</a>
+            <a href="{{ url_for('products.catalog', category='books') }}" class="link link-hover whitespace-nowrap">Books</a>
+            <a href="{{ url_for('products.catalog', category='sports') }}" class="link link-hover whitespace-nowrap">Sports</a>
+        </div>
+    </div>
+</div>

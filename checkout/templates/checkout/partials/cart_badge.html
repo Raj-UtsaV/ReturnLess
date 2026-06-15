@@ -1,0 +1,13 @@
+<!-- Cart Count Badge (HTMX swappable for navbar) -->
+{% if cart_count > 0 %}
+<div class="indicator">
+    <span class="indicator-item badge badge-primary badge-xs">{{ cart_count }}</span>
+    <a href="{{ url_for('checkout.cart') }}" class="btn btn-ghost btn-circle">
+        🛒
+    </a>
+</div>
+{% else %}
+<a href="{{ url_for('checkout.cart') }}" class="btn btn-ghost btn-circle">
+    🛒
+</a>
+{% endif %}

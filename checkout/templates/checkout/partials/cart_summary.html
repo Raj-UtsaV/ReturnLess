@@ -1,0 +1,51 @@
+<!-- Cart Summary Sidebar (HTMX swappable) -->
+<div class="card bg-base-100 border border-base-200 shadow-md sticky top-24" id="cart-summary">
+    <div class="card-body">
+        <h3 class="font-bold text-lg">Order Summary</h3>
+
+        <div class="space-y-3 mt-4">
+            <div class="flex justify-between">
+                <span class="text-base-content/70">Subtotal ({{ cart.item_count }} items)</span>
+                <span class="font-medium">₹{{ "{:,.0f}".format(cart.subtotal) }}</span>
+            </div>
+
+            <div class="flex justify-between">
+                <span class="text-base-content/70">Delivery</span>
+                {% if cart.delivery_fee == 0 %}
+                    <span class="text-success font-medium">FREE</span>
+                {% else %}
+                    <span class="font-medium">₹{{ cart.delivery_fee }}</span>
+                {% endif %}
+            </div>
+
+            {% if cart.amount_to_free_delivery > 0 %}
+                <div class="text-xs text-info bg-info/10 p-2 rounded-lg">
+                    🚚 Add ₹{{ "{:,.0f}".format(cart.amount_to_free_delivery) }} more for free delivery!
+                </div>
+            {% endif %}
+
+            <div class="divider my-0"></div>
+
+            <div class="flex justify-between text-lg font-bold">
+                <span>Total</span>
+                <span>₹{{ "{:,.0f}".format(cart.total) }}</span>
+            </div>
+
+            <!-- Green Credits -->
+            <div class="bg-gradient-to-r from-returnless-500 to-emerald-400 rounded-lg p-3 text-white">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">🌱 Credits you'll earn</span>
+                    <span class="font-bold text-lg">+{{ cart.green_credits_earn }}</span>
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ url_for('checkout.checkout') }}" class="btn btn-primary w-full mt-6">
+            Proceed to Checkout
+        </a>
+
+        <a href="{{ url_for('products.catalog') }}" class="btn btn-ghost btn-sm w-full mt-2">
+            Continue Shopping
+        </a>
+    </div>
+</div>

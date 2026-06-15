@@ -1,0 +1,54 @@
+<!-- AI Review Summary Partial (for embedding in product detail page) -->
+{% if summary %}
+<div class="card bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-sm" data-theme="light">
+    <div class="card-body p-4">
+        <div class="flex items-center justify-between">
+            <h3 class="font-bold text-sm flex items-center gap-2 text-blue-800">
+                🤖 AI Review Summary
+            </h3>
+            <div class="badge badge-info badge-xs">{{ summary.total_reviews_analyzed }} reviews analyzed</div>
+        </div>
+
+        <p class="text-sm text-blue-700 mt-2 leading-relaxed">
+            {{ summary.summary_text }}
+        </p>
+
+        <!-- Compact Pros & Cons -->
+        <div class="grid grid-cols-2 gap-3 mt-3">
+            {% if summary.pros %}
+                <div>
+                    <p class="text-xs font-medium text-green-700">✅ Highlights</p>
+                    <ul class="text-xs space-y-0.5 mt-1">
+                        {% for pro in summary.pros[:3] %}
+                            <li class="text-green-600">• {{ pro }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            {% if summary.cons %}
+                <div>
+                    <p class="text-xs font-medium text-red-700">⚠️ Concerns</p>
+                    <ul class="text-xs space-y-0.5 mt-1">
+                        {% for con in summary.cons[:3] %}
+                            <li class="text-red-600">• {{ con }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Confidence -->
+        <div class="flex items-center gap-2 mt-3">
+            <span class="text-xs text-blue-600">AI Confidence:</span>
+            <progress class="progress progress-info h-1.5 w-20" value="{{ (summary.confidence_score * 100)|int }}" max="100"></progress>
+            <span class="text-xs text-blue-600">{{ (summary.confidence_score * 100)|int }}%</span>
+        </div>
+    </div>
+</div>
+{% elif stats and stats.total > 0 %}
+<div class="card bg-base-200/50 border border-base-200">
+    <div class="card-body p-4 text-center">
+        <p class="text-sm text-base-content/60">🤖 AI summary will be generated after 3+ reviews.</p>
+    </div>
+</div>
+{% endif %}
