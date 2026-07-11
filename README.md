@@ -172,7 +172,10 @@ Customer returns item → Credit check → Penalty calculated → AI grades prod
 
 ---
 
-## 🤝 Team
+## 🤝 Contributors
+Utsav Raj
+Aditya Bansal
+Shivay Saurya
 
 Built for Amazon Hackon 2026
 
@@ -181,3 +184,4 @@ Built for Amazon Hackon 2026
 ## 📄 License
 
 MIT
+
