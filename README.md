@@ -173,9 +173,9 @@ Customer returns item → Credit check → Penalty calculated → AI grades prod
 ---
 
 ## 🤝 Contributors
-Utsav Raj
-Aditya Bansal
-Shivay Saurya
+- Utsav Raj 
+- Aditya Bansal
+- Shivay Saurya
 
 Built for Amazon Hackon 2026
 
